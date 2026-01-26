@@ -7,22 +7,13 @@ define('LARAVEL_START', microtime(true));
 
 // Fix for subdirectory hosting on Namecheap - modify global $_SERVER before Laravel captures it
 if (isset($_SERVER['REQUEST_URI'])) {
-    // Nettoyage agressif pour Namecheap
-    $originalUri = $_SERVER['REQUEST_URI'];
+    $uri = $_SERVER['REQUEST_URI'];
+    // Remove the subdirectory and public folder from the URI
+    $uri = str_replace(['/MyHospitsis/public', '/MyHospitsis'], '', $uri);
+    // Ensure we have a leading slash and it's not empty
+    if (empty($uri) || $uri === '') $uri = '/';
+    if ($uri[0] !== '/') $uri = '/' . $uri;
     
-    // On retire le préfixe du sous-dossier et du dossier public s'ils sont présents
-    $uri = preg_replace('/^\/MyHospitsis(\/public)?/', '', $originalUri);
-    
-    // Assurer qu'on a au moins une racine
-    if (empty($uri) || $uri === '' || $uri === '//') {
-        $uri = '/';
-    }
-    
-    // Nettoyage des doubles slashes au début
-    if (strpos($uri, '//') === 0) {
-        $uri = substr($uri, 1);
-    }
-
     $_SERVER['REQUEST_URI'] = $uri;
 }
 
