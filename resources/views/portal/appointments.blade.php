@@ -22,8 +22,14 @@
                                             <div class="flex items-center space-x-4">
                                                 <div>
                                                     <h4 class="font-semibold text-lg">{{ $appointment->appointment_datetime->format('d/m/Y H:i') }}</h4>
-                                                    <p class="text-gray-600">{{ $appointment->doctor->name }} {{ $appointment->doctor->first_name ?? '' }}</p>
-                                                    <p class="text-sm text-gray-500">{{ $appointment->service->name }}</p>
+                                                    <p class="text-gray-600">
+                                                        @if($appointment->doctor)
+                                                            <span class="font-bold text-blue-600">Dr. {{ $appointment->doctor->name }} {{ $appointment->doctor->first_name }}</span>
+                                                        @else
+                                                            <span class="italic text-gray-400">Médecin non assigné</span>
+                                                        @endif
+                                                    </p>
+                                                    <p class="text-sm text-gray-500">{{ $appointment->service ? $appointment->service->name : 'Service non défini' }}</p>
                                                 </div>
                                             </div>
 
@@ -40,9 +46,9 @@
                                             @endif
                                         </div>
 
-                                        <div class="text-right">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                                @if($appointment->status === 'scheduled') bg-yellow-100 text-yellow-800
+                                        <div class="flex flex-col space-y-2 text-right self-center">
+                                            <span class="inline-flex items-center self-end px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider
+                                                @if($appointment->status === 'scheduled' || $appointment->status === 'pending') bg-yellow-100 text-yellow-800
                                                 @elseif($appointment->status === 'confirmed') bg-blue-100 text-blue-800
                                                 @elseif($appointment->status === 'completed') bg-green-100 text-green-800
                                                 @elseif($appointment->status === 'cancelled') bg-red-100 text-red-800
@@ -51,19 +57,27 @@
                                                 {{ ucfirst($appointment->status) }}
                                             </span>
 
-                                            @if($appointment->status === 'scheduled' && $appointment->appointment_datetime > now())
-                                                <div class="mt-2">
+                                            <div class="flex items-center justify-end space-x-2">
+                                                <button onclick="alert('Détails du rendez-vous:\n\nDate: {{ $appointment->appointment_datetime->format('d/m/Y H:i') }}\nService: {{ $appointment->service ? $appointment->service->name : 'N/A' }}\nMotif: {{ $appointment->reason }}')" 
+                                                        class="inline-flex items-center px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white text-xs font-bold rounded-lg transition shadow-sm">
+                                                    <i class="fas fa-eye mr-1.5"></i>
+                                                    Voir
+                                                </button>
+
+                                                @if($appointment->status !== 'cancelled' && $appointment->status !== 'completed')
                                                     <form method="POST" action="{{ route('patient.cancel-appointment', $appointment) }}" class="inline">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="text-red-600 hover:text-red-800 text-sm font-medium"
-                                                                onclick="return confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous ?')">
-                                                            Annuler
+                                                        <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition shadow-sm"
+                                                                onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce rendez-vous ?')">
+                                                            <i class="fas fa-trash-alt mr-1.5"></i>
+                                                            Supprimer
                                                         </button>
                                                     </form>
-                                                </div>
-                                            @endif
+                                                @endif
+                                            </div>
                                         </div>
+
                                     </div>
                                 </div>
                             @endforeach

@@ -8,14 +8,14 @@
                 <div class="flex items-center space-x-6">
                     <div class="h-20 w-20 rounded-3xl bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-lg flex items-center justify-center text-white ring-4 ring-blue-50">
                         <span class="text-3xl font-black">
-                            {{ strtoupper(substr(auth()->user()->name ?? 'DR', 0, 2)) }}
+                            {{ strtoupper(substr($medecin->name ?? 'DR', 0, 2)) }}
                         </span>
                     </div>
                     <div>
-                        <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Dr. {{ auth()->user()->name ?? 'Médecin' }}</h1>
+                        <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Dr. {{ $medecin->name ?? 'Médecin' }}</h1>
                         <div class="flex flex-wrap items-center gap-3 mt-2">
                             <span class="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-bold">
-                                ⚕️ {{ auth()->user()->service->name ?? 'Service Général' }}
+                                ⚕️ {{ $medecin->service->name ?? ($medecin->specialite ?? 'Spécialiste Externe') }}
                             </span>
                             <span class="text-gray-400 font-medium flex items-center text-sm">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -72,6 +72,49 @@
                 </div>
             </div>
         </div>
+
+        <!-- Section Demandes de Rendez-vous -->
+        @if(isset($pendingServiceAppointments) && $pendingServiceAppointments->count() > 0)
+        <div class="mb-12">
+            <h2 class="text-2xl font-black text-gray-800 italic uppercase tracking-tighter mb-6">Demandes de Rendez-vous en Attente</h2>
+            <div class="bg-white rounded-[2rem] border border-orange-100 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-orange-50">
+                            <tr>
+                                <th class="p-6 text-xs font-black text-orange-800 uppercase tracking-wider">Patient</th>
+                                <th class="p-6 text-xs font-black text-orange-800 uppercase tracking-wider">Date souhaitée</th>
+                                <th class="p-6 text-xs font-black text-orange-800 uppercase tracking-wider">Motif</th>
+                                <th class="p-6 text-xs font-black text-orange-800 uppercase tracking-wider text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-orange-50">
+                            @foreach($pendingServiceAppointments as $appointment)
+                            <tr class="hover:bg-orange-50/30 transition-colors">
+                                <td class="p-6 font-bold text-gray-800">{{ $appointment->patient->full_name ?? 'Inconnu' }}</td>
+                                <td class="p-6">
+                                    <div class="font-bold text-gray-900">{{ \Carbon\Carbon::parse($appointment->appointment_datetime)->isoFormat('dddd D MMMM HH:mm') }}</div>
+                                    <div class="text-xs text-gray-400 font-bold uppercase">{{ \Carbon\Carbon::parse($appointment->appointment_datetime)->diffForHumans() }}</div>
+                                </td>
+                                <td class="p-6 text-gray-600">{{ $appointment->reason }}</td>
+                                <td class="p-6 text-right">
+                                    <form action="{{ route('appointments.approve', $appointment->id) }}" method="POST" class="inline-block">
+                                        @csrf
+                                        @method('POST') <!-- Ou PUT selon ta route -->
+                                        <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-green-700 transition-all shadow-md flex items-center gap-2 ml-auto">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                            Approuver & Assigner
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        @endif
 
         <div id="patients-section">
             <div class="flex items-center justify-between mb-8">

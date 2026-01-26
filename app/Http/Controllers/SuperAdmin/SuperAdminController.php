@@ -116,21 +116,25 @@ class SuperAdminController extends Controller
         // On récupère tous les hôpitaux pour les afficher sur le dashboard
         $hospitals = Hospital::withCount('users')->get();
 
+        // Récupérer tous les spécialistes
+        $allSpecialists = MedecinExterne::orderBy('created_at', 'desc')->get();
+        $pendingSpecialists = $allSpecialists->where('statut', 'inactif');
+
         // Statistiques dynamiques pour le dashboard
         $stats = [
             'active_hospitals' => $hospitals->where('is_active', true)->count(),
             'total_users' => $hospitals->sum('users_count'),
             'total_patients' => \App\Models\Patient::count(),
-            'pending_validations' => 0, // À remplacer par une vraie logique quand disponible
-            'total_saas_revenue' => 0, // TODO: Calculate actual SaaS revenue
-            'total_commissions' => 0, // TODO: Calculate actual commissions
-            'monthly_saas_revenue' => 0, // TODO: Calculate monthly SaaS revenue
-            'monthly_commissions' => 0, // TODO: Calculate monthly commissions
-            'activation_fee' => 4000, // Default activation fee
-            'average_commission' => 15, // Default average commission percentage
+            'pending_validations' => $pendingSpecialists->count(),
+            'total_saas_revenue' => (float) TransactionLog::sum('net_income'),
+            'total_commissions' => (float) TransactionLog::where('description', 'like', '%commission%')->sum('net_income'),
+            'monthly_saas_revenue' => (float) TransactionLog::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('net_income'),
+            'monthly_commissions' => (float) TransactionLog::where('description', 'like', '%commission%')->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('net_income'),
+            'activation_fee' => 4000, 
+            'average_commission' => 15,
         ];
 
-        return view('superadmin.dashboard', compact('hospitals', 'stats'));
+        return view('superadmin.dashboard', compact('hospitals', 'stats', 'allSpecialists', 'pendingSpecialists'));
     }
 
     // === HOSPITAL MANAGEMENT ===
@@ -229,6 +233,47 @@ class SuperAdminController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la mise à jour du statut'
+            ], 500);
+        }
+    }
+
+    public function validateSpecialist(Request $request, $id)
+    {
+        $request->validate([
+            'action' => 'required|in:approve,reject'
+        ]);
+
+        try {
+            $specialist = MedecinExterne::findOrFail($id);
+
+            if ($request->action === 'approve') {
+                $specialist->statut = 'actif';
+                $specialist->save();
+
+                // Initialize wallet if it doesn't exist
+                SpecialistWallet::firstOrCreate(
+                    ['specialist_id' => $specialist->id],
+                    ['balance' => 0, 'is_activated' => false, 'is_blocked' => false]
+                );
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Spécialiste validé avec succès.'
+                ]);
+            } else {
+                // For rejection, we might want to delete or keep as inactive
+                // For now, let's just keep it inactive or maybe delete it
+                // $specialist->delete(); 
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Spécialiste rejeté.'
+                ]);
+            }
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la validation: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -742,17 +787,38 @@ class SuperAdminController extends Controller
     
     public function getFinancialMonitoring()
     {
-        return response()->json([
-            'stats' => [
-                'total_saas_revenue' => 0,
-                'total_commissions' => 0,
-                'monthly_saas_revenue' => 0,
-                'monthly_commissions' => 0,
-            ],
-            'recent_transactions' => [],
-            'hospitals' => [],
-            'specialists' => [],
-        ]);
+        try {
+            $transactions = TransactionLog::latest()->take(10)->get();
+            
+            $stats = [
+                'total_revenue' => (float) TransactionLog::sum('net_income'),
+                'activation_fees' => (float) TransactionLog::where('description', 'like', 'FRAIS_ACTIVATION%')->sum('net_income'),
+                'specialist_commissions' => (float) TransactionLog::where('description', 'like', '%commission%')->sum('net_income'),
+                'hospital_subscriptions' => (float) TransactionLog::where('source_type', 'hospital')->where('description', 'like', '%abonnement%')->sum('net_income'),
+            ];
+
+            return response()->json([
+                'success' => true,
+                'stats' => $stats,
+                'recent_transactions' => $transactions,
+                'hospitals' => Hospital::where('is_active', true)->take(10)->get(),
+                'specialists' => MedecinExterne::take(10)->get()->map(function($spec) {
+                    return [
+                        'id' => $spec->id,
+                        'specialist_id' => $spec->id, // Pour la compatibilité JS
+                        'name' => $spec->nom . ' ' . $spec->prenom,
+                        'balance' => (float) $spec->balance,
+                        'status' => strtoupper($spec->statut ?? 'INACTIF')
+                    ];
+                }),
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Financial Monitoring Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function getInvoices()

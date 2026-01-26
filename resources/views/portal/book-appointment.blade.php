@@ -78,58 +78,77 @@
                     </select>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Spécialité / Prestation *</label>
-                    <select name="service_or_prestation_id" id="service_id" required disabled class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                        <option value="">Choisir d'abord un établissement</option>
-                    </select>
-                    
-                    <div id="price_display" class="mt-4 hidden">
-                        <div class="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4 flex justify-between items-center">
-                            <div>
-                                <p class="text-sm font-medium text-gray-700">Tarif</p>
-                                <p id="base_price" class="text-2xl font-bold text-blue-600">0 FCFA</p>
-                            </div>
-                            <div id="home_surcharge_info" class="text-right hidden">
-                                <p class="text-xs text-red-600">+ 5.000 FCFA (Domicile)</p>
-                                <p id="total_price_display" class="font-bold text-gray-800"></p>
-                            </div>
+                <div id="hospital_location_display" class="hidden">
+                    <div class="flex items-start space-x-3 text-sm text-gray-600 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                        <i class="fas fa-map-marker-alt text-red-500 mt-1"></i>
+                        <div>
+                            <p class="font-semibold text-gray-900">Localisation de l'établissement</p>
+                            <p id="hospital_address_text">...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Service *</label>
+                        <select name="service_id" id="service_id" required disabled class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Choisir d'abord un établissement</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Prestation (Optionnel)</label>
+                        <select name="prestation_id" id="prestation_id" disabled class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Choisir d'abord un service</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="price_display" class="mt-4 hidden">
+                    <div class="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4 flex justify-between items-center">
+                        <div>
+                            <p class="text-sm font-medium text-gray-700">Tarif estimé</p>
+                            <p id="base_price" class="text-2xl font-bold text-blue-600">0 FCFA</p>
+                        </div>
+                        <div id="home_surcharge_info" class="text-right hidden">
+                            <p class="text-xs text-red-600">+ 5.000 FCFA (Domicile)</p>
+                            <p id="total_price_display" class="font-bold text-gray-800"></p>
                         </div>
                     </div>
                 </div>
 
                 <div id="home_address_section" style="display: none;">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Adresse complète *</label>
-                    <textarea name="home_address" id="home_address" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg"></textarea>
+                    <textarea name="home_address" id="home_address" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg" placeholder="Indiquez votre adresse exacte pour le passage du médecin"></textarea>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Date *</label>
-                        <input type="date" name="appointment_date" id="appointment_date" required min="{{ date('Y-m-d') }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date souhaitée *</label>
+                        <input type="date" name="appointment_date" id="appointment_date" required min="{{ date('Y-m-d') }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Heure *</label>
-                        <input type="time" name="appointment_time" id="appointment_time" required class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Heure souhaitée *</label>
+                        <input type="time" name="appointment_time" id="appointment_time" required class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Motif de consultation *</label>
-                    <textarea name="reason" id="reason" required rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg"></textarea>
+                    <textarea name="reason" id="reason" required rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg mb-2" placeholder="Ex: Douleurs abdominales, Fièvre, Contrôle annuel..."></textarea>
                 </div>
 
                 <div id="appointment_summary" class="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-5">
-                    <h3 class="font-bold text-gray-900 mb-2 text-sm">Résumé de votre demande</h3>
+                    <h3 class="font-bold text-gray-900 mb-2 text-sm uppercase tracking-wider">Résumé de votre demande</h3>
                     <div id="summary_content" class="text-sm space-y-1">
                         <p class="text-gray-500 italic">Veuillez remplir le formulaire...</p>
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between pt-4">
-                    <button type="button" onclick="resetForm()" class="text-gray-600 font-medium">Retour</button>
-                    <button type="submit" class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-bold shadow-md">
-                        Confirmer le rendez-vous
+                    <button type="button" onclick="resetForm()" class="px-6 py-3 text-gray-600 font-medium hover:text-gray-900 transition">Retour</button>
+                    <button type="submit" class="px-8 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-bold shadow-lg shadow-blue-200">
+                        Confirmer la demande
                     </button>
                 </div>
             </div>
@@ -137,7 +156,7 @@
     </main>
 
     <script>
-        const servicesData = @json($servicesAndPrestations);
+        const hospitalsData = @json($hospitalsData);
         let selectedType = '';
         let basePrice = 0;
         const surcharge = 5000;
@@ -150,8 +169,18 @@
             document.getElementById('home_address').required = (type === 'home');
 
             // Style des cartes
-            document.querySelectorAll('.consultation-type').forEach(card => card.classList.replace('border-blue-500', 'border-gray-200'));
-            event.currentTarget.classList.replace('border-gray-200', type === 'hospital' ? 'border-blue-500' : 'border-green-500');
+            document.querySelectorAll('.consultation-type').forEach(card => {
+                card.classList.remove('border-blue-500', 'border-green-500', 'bg-blue-50', 'bg-green-50');
+                card.classList.add('border-gray-200');
+            });
+            
+            const card = event.currentTarget;
+            card.classList.remove('border-gray-200');
+            if (type === 'hospital') {
+                card.classList.add('border-blue-500', 'bg-blue-50');
+            } else {
+                card.classList.add('border-green-500', 'bg-green-50');
+            }
             
             updatePrice();
             updateSummary();
@@ -160,32 +189,85 @@
         document.getElementById('hospital_id').addEventListener('change', function() {
             const hospitalId = this.value;
             const serviceSelect = document.getElementById('service_id');
-            serviceSelect.innerHTML = '<option value="">Choisir une spécialité</option>';
+            const prestationSelect = document.getElementById('prestation_id');
+            const locationDisplay = document.getElementById('hospital_location_display');
             
-            if (servicesData[hospitalId]) {
+            serviceSelect.innerHTML = '<option value="">Choisir un service</option>';
+            prestationSelect.innerHTML = '<option value="">Choisir d\'abord un service</option>';
+            prestationSelect.disabled = true;
+            
+            if (hospitalsData[hospitalId]) {
+                // Show location
+                locationDisplay.classList.remove('hidden');
+                document.getElementById('hospital_address_text').innerText = hospitalsData[hospitalId].address || 'Adresse non renseignée';
+
+                // Populate services
                 serviceSelect.disabled = false;
-                servicesData[hospitalId].forEach(s => {
+                hospitalsData[hospitalId].services.forEach(s => {
                     let opt = document.createElement('option');
                     opt.value = s.id;
-                    opt.text = s.name + ' (' + s.price + ' FCFA)';
+                    opt.text = s.name;
                     opt.dataset.price = s.price;
                     serviceSelect.appendChild(opt);
                 });
             } else {
                 serviceSelect.disabled = true;
+                locationDisplay.classList.add('hidden');
             }
+            updatePrice();
             updateSummary();
         });
 
-        document.getElementById('service_id').addEventListener('change', updatePrice);
+        document.getElementById('service_id').addEventListener('change', function() {
+            const serviceId = this.value;
+            const hospitalId = document.getElementById('hospital_id').value;
+            const prestationSelect = document.getElementById('prestation_id');
+            
+            prestationSelect.innerHTML = '<option value="">Choisir une prestation (Optionnel)</option>';
+            
+            if (serviceId && hospitalsData[hospitalId]) {
+                const prestations = hospitalsData[hospitalId].prestations.filter(p => p.service_id == serviceId);
+                
+                if (prestations.length > 0) {
+                    prestationSelect.disabled = false;
+                    prestations.forEach(p => {
+                        let opt = document.createElement('option');
+                        opt.value = p.id;
+                        opt.text = p.name + ' (' + p.price + ' FCFA)';
+                        opt.dataset.price = p.price;
+                        prestationSelect.appendChild(opt);
+                    });
+                } else {
+                    prestationSelect.innerHTML = '<option value="">Aucune prestation spécifique</option>';
+                    prestationSelect.disabled = true;
+                }
+            } else {
+                prestationSelect.disabled = true;
+            }
+            updatePrice();
+            updateSummary();
+        });
+
+        document.getElementById('prestation_id').addEventListener('change', updatePrice);
         ['appointment_date', 'appointment_time', 'reason', 'home_address'].forEach(id => {
             document.getElementById(id).addEventListener('input', updateSummary);
         });
 
         function updatePrice() {
-            const s = document.getElementById('service_id');
-            const opt = s.options[s.selectedIndex];
-            basePrice = (opt && opt.value) ? parseFloat(opt.dataset.price) : 0;
+            const sSelect = document.getElementById('service_id');
+            const pSelect = document.getElementById('prestation_id');
+            
+            const sOpt = sSelect.options[sSelect.selectedIndex];
+            const pOpt = pSelect.options[pSelect.selectedIndex];
+            
+            // Si une prestation est sélectionnée, on prend son prix, sinon celui du service
+            if (pOpt && pOpt.value) {
+                basePrice = parseFloat(pOpt.dataset.price);
+            } else if (sOpt && sOpt.value) {
+                basePrice = parseFloat(sOpt.dataset.price);
+            } else {
+                basePrice = 0;
+            }
 
             if (basePrice > 0) {
                 document.getElementById('price_display').classList.remove('hidden');
@@ -197,21 +279,41 @@
                 } else {
                     document.getElementById('home_surcharge_info').classList.add('hidden');
                 }
+            } else {
+                document.getElementById('price_display').classList.add('hidden');
             }
             updateSummary();
         }
 
         function updateSummary() {
+            const hospitalId = document.getElementById('hospital_id').value;
+            const serviceId = document.getElementById('service_id').value;
+            const prestationId = document.getElementById('prestation_id').value;
+            
+            if (!selectedType || !hospitalId || !serviceId) {
+                document.getElementById('summary_content').innerHTML = '<p class="text-gray-500 italic">Veuillez remplir le formulaire...</p>';
+                return;
+            }
+
+            const hospitalName = document.getElementById('hospital_id').options[document.getElementById('hospital_id').selectedIndex].text;
+            const serviceName = document.getElementById('service_id').options[document.getElementById('service_id').selectedIndex].text;
+            const date = document.getElementById('appointment_date').value;
+            const time = document.getElementById('appointment_time').value;
+
             const html = `
+                <p><b>Établissement:</b> ${hospitalName}</p>
                 <p><b>Type:</b> ${selectedType === 'hospital' ? 'À l\'hôpital' : 'À domicile'}</p>
-                <p><b>Date:</b> ${document.getElementById('appointment_date').value || '...'} à ${document.getElementById('appointment_time').value || '...'}</p>
-                <p><b>Total:</b> <span class="text-blue-600 font-bold">${(selectedType === 'home' ? basePrice + surcharge : basePrice).toLocaleString()} FCFA</span></p>
+                <p><b>Service:</b> ${serviceName}</p>
+                <p><b>Date:</b> ${date || '...'} à ${time || '...'}</p>
+                <p><b>Total estimé:</b> <span class="text-blue-600 font-bold">${(selectedType === 'home' ? basePrice + surcharge : basePrice).toLocaleString()} FCFA</span></p>
             `;
             document.getElementById('summary_content').innerHTML = html;
         }
 
         function resetForm() {
-            location.reload();
+            if (confirm('Voulez-vous vraiment recommencer ?')) {
+                location.reload();
+            }
         }
     </script>
 </body>

@@ -105,50 +105,43 @@ class PatientPortalController extends Controller
 
     return view('patients.auth.book-appointment', compact('patient', 'hospitals', 'servicesAndPrestations'));
 }
-public function bookAppointment()
-{
-    $patient = Auth::guard('patients')->user(); //
-    $hospitals = \App\Models\Hospital::where('is_active', true)->get(); //
+    public function bookAppointment()
+    {
+        $patient = Auth::guard('patients')->user();
+        $hospitals = \App\Models\Hospital::where('is_active', true)->get();
 
-    $servicesAndPrestations = []; //
+        $hospitalsData = [];
 
-    foreach ($hospitals as $hospital) {
-        // Récupérer les services rattachés à cet hôpital
-        $hospitalServices = \App\Models\Service::where('hospital_id', $hospital->id)
-            ->where('is_active', true)
-            ->get(); //
+        foreach ($hospitals as $hospital) {
+            $services = \App\Models\Service::where('hospital_id', $hospital->id)
+                ->where('is_active', true)
+                ->get()
+                ->map(fn($s) => [
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'price' => $s->consultation_price ?? 0
+                ]);
 
-        $mergedList = []; //
+            $prestations = \App\Models\Prestation::where('hospital_id', $hospital->id)
+                ->where('is_active', true)
+                ->get()
+                ->map(fn($p) => [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'price' => $p->price ?? 0,
+                    'service_id' => $p->service_id
+                ]);
 
-        foreach ($hospitalServices as $service) {
-            $mergedList[] = [
-                'id'    => $service->id,
-                'name'  => $service->name,
-                'price' => $service->consultation_price ?? 0, // Utilise ta colonne SQL exacte
-                'type'  => 'service'
-            ]; //
+            $hospitalsData[$hospital->id] = [
+                'services' => $services,
+                'prestations' => $prestations,
+                'address' => $hospital->address
+            ];
         }
 
-        // Récupérer aussi les prestations (si tu en as)
-        $hospitalPrestations = \App\Models\Prestation::where('hospital_id', $hospital->id)
-            ->where('is_active', true)
-            ->get(); //
-
-        foreach ($hospitalPrestations as $prestation) {
-            $mergedList[] = [
-                'id'    => $prestation->id,
-                'name'  => $prestation->name,
-                'price' => $prestation->price ?? 0,
-                'type'  => 'prestation'
-            ]; //
-        }
-
-        // CRUCIAL : On indexe le tableau par l'ID de l'hôpital pour le JS
-        $servicesAndPrestations[$hospital->id] = $mergedList; //
+        return view('portal.book-appointment', compact('patient', 'hospitals', 'hospitalsData'));
     }
 
-    return view('portal.book-appointment', compact('patient', 'hospitals', 'servicesAndPrestations')); //
-}
 
     /**
      * Récupérer les prestations de consultation d'un hôpital via AJAX
@@ -250,16 +243,8 @@ public function bookAppointment()
             'hospital_id' => 'required|exists:hospitals,id',
             'appointment_date' => 'required|date|after:today',
             'appointment_time' => 'required',
-            'service_or_prestation_id' => [
-                'required',
-                function ($attribute, $value, $fail) {
-                    $service = \App\Models\Service::find($value);
-                    $prestation = \App\Models\Prestation::find($value);
-                    if (!$service && !$prestation) {
-                        $fail('Le service ou la prestation sélectionné n\'existe pas.');
-                    }
-                },
-            ],
+            'service_id' => 'required|exists:services,id',
+            'prestation_id' => 'nullable|exists:prestations,id',
             'reason' => 'required|string|max:500',
             'notes' => 'nullable|string|max:1000',
             'home_address' => 'required_if:consultation_type,home|nullable|string',
@@ -270,24 +255,19 @@ public function bookAppointment()
         // Combiner date et heure
         $appointmentDateTime = $validated['appointment_date'] . ' ' . $validated['appointment_time'];
 
-        // Déterminer si c'est un service ou une prestation
-        $serviceOrPrestationId = $validated['service_or_prestation_id'];
-        $serviceId = null;
-        $prestationId = null;
+        $serviceId = $validated['service_id'];
+        $prestationId = $validated['prestation_id'];
 
-        // Vérifier si c'est un service
-        $service = \App\Models\Service::find($serviceOrPrestationId);
-        if ($service) {
-            $serviceId = $service->id;
-        } else {
-            // C'est une prestation
-            $prestationId = $serviceOrPrestationId;
-        }
+        // --- PLUS D'ATTRIBUTION AUTOMATIQUE ---
+        // Le rendez-vous reste à NULL pour être visible par tous les médecins du service
+        // Ils pourront l'approuver et l'assigner eux-mêmes depuis leur dashboard.
+        $assignedDoctorId = null;
 
         // Créer le rendez-vous
         $appointment = Appointment::create([
-            'patient_id' => $patient->id,
+            'patient_id' => Auth::guard('patients')->id(),
             'service_id' => $serviceId,
+            'doctor_id' => $assignedDoctorId,
             'appointment_datetime' => $appointmentDateTime,
             'status' => 'pending',
             'reason' => $validated['reason'],
@@ -297,12 +277,40 @@ public function bookAppointment()
             'hospital_id' => $validated['hospital_id'],
         ]);
 
-        // Attach the prestation to the appointment if it's a prestation
+        // Attach the prestation if selected
         if ($prestationId) {
-            $appointment->prestations()->attach($prestationId);
+            $prestation = \App\Models\Prestation::find($prestationId);
+            if ($prestation) {
+                $appointment->prestations()->attach($prestationId, [
+                    'quantity' => 1,
+                    'unit_price' => $prestation->price,
+                    'total' => $prestation->price,
+                ]);
+            }
         }
 
         return redirect()->route('patient.appointments')
             ->with('success', 'Votre demande de rendez-vous a été enregistrée. Vous serez contacté pour confirmation.');
+    }
+
+
+    public function cancelAppointment(Appointment $appointment)
+    {
+        $patient = Auth::guard('patients')->user();
+
+        // Vérifier que le rendez-vous appartient au patient
+        if ($appointment->patient_id !== $patient->id) {
+            abort(403, 'Vous n\'êtes pas autorisé à annuler ce rendez-vous.');
+        }
+
+        // Vérifier que le rendez-vous peut être annulé (pas déjà passé et pas déjà annulé)
+        if ($appointment->appointment_datetime <= now() || $appointment->status === 'cancelled') {
+            return back()->with('error', 'Ce rendez-vous ne peut pas être annulé.');
+        }
+
+        // Annuler le rendez-vous
+        $appointment->update(['status' => 'cancelled']);
+
+        return back()->with('success', 'Votre rendez-vous a été annulé avec succès.');
     }
 }

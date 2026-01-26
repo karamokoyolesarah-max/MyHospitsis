@@ -18,7 +18,15 @@ class AppointmentController extends Controller
 
     // --- SÉCURITÉ RENFORCÉE ---
     if ($user->isDoctor()) {
-        $query->where('doctor_id', $user->id)->where('status', '!=', 'prepared');
+        $query->where(function ($q) use ($user) {
+            $q->where('doctor_id', $user->id) // Mes rendez-vous
+              ->orWhere(function ($subQ) use ($user) {
+                  // OU les rendez-vous de mon service sans médecin assigné (pour approbation)
+                  $subQ->where('service_id', $user->service_id)
+                       ->whereNull('doctor_id')
+                       ->where('status', 'pending');
+              });
+        })->where('status', '!=', 'prepared');
     }
     // On ne rentre dans cette condition QUE si ce n'est pas un docteur et pas un admin
     elseif (!$user->isAdmin() && $user->service_id) {
@@ -391,8 +399,48 @@ class AppointmentController extends Controller
                 'message' => 'Erreur serveur lors de la mise à jour du statut.',
             ], 500);
         }
+
     }
 
+    // ===================================================
+    // ✅ MÉTHODE POUR APPROUVER ET S'ASSIGNER UN RDV
+    // ===================================================
+    public function approve(Request $request, Appointment $appointment)
+    {
+        $user = auth()->user();
+
+        // Vérification : Le médecin doit être du même service
+        if ($user->service_id !== $appointment->service_id) {
+             abort(403, 'Vous ne pouvez approuver que les rendez-vous de votre service.');
+        }
+
+        // Vérification : Le RDV doit être "pending" et sans médecin
+        if ($appointment->status !== 'pending' || $appointment->doctor_id !== null) {
+            return back()->with('error', 'Ce rendez-vous n\'est plus en attente ou a déjà été assigné.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $appointment->update([
+                'status' => 'confirmed',
+                'doctor_id' => $user->id
+            ]);
+
+            AuditLog::log('approve', 'Appointment', $appointment->id, [
+                'description' => 'Rendez-vous approuvé et assigné à Dr. ' . $user->name,
+                'doctor_id' => $user->id
+            ]);
+
+            DB::commit();
+
+            return back()->with('success', 'Rendez-vous approuvé et ajouté à votre agenda.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Erreur lors de l\'approbation.');
+        }
+    }
     private function checkDoctorAvailability($doctorId, $datetime, $duration, $excludeId = null)
     {
         $startTime = Carbon::parse($datetime);

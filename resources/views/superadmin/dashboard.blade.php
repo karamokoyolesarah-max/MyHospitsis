@@ -118,6 +118,8 @@
 
         @include('superadmin.tabs.hospitals')
 
+        @include('superadmin.tabs.specialists')
+
         <!-- === SUBSCRIPTION PLANS MANAGEMENT === -->
         @include('superadmin.tabs.subscription-plans')
 
@@ -1316,10 +1318,10 @@
                 statsContainer.innerHTML = '';
 
                 const stats = [
-                    { label: 'Revenus SaaS Total', value: data.stats.total_saas_revenue, icon: 'bi-cash-stack', color: 'blue' },
-                    { label: 'Total Commissions', value: data.stats.total_commissions, icon: 'bi-percent', color: 'purple' },
-                    { label: 'Revenus SaaS Mensuel', value: data.stats.monthly_saas_revenue, icon: 'bi-calendar', color: 'green' },
-                    { label: 'Commissions Mensuelles', value: data.stats.monthly_commissions, icon: 'bi-graph-up', color: 'orange' }
+                    { label: 'Revenus SaaS Total', value: data.stats.total_revenue, icon: 'bi-bank', color: 'blue' },
+                    { label: 'Frais Activation', value: data.stats.activation_fees, icon: 'bi-person-check', color: 'indigo' },
+                    { label: 'Commissions Actes', value: data.stats.specialist_commissions, icon: 'bi-percent', color: 'purple' },
+                    { label: 'Abonnements Hôpitaux', value: data.stats.hospital_subscriptions, icon: 'bi-building-check', color: 'emerald' }
                 ];
 
                 stats.forEach(stat => {

@@ -20,7 +20,9 @@ class RedirectByRole
             // Définir les dashboards par rôle
             $roleDashboards = [
                 'internal_doctor' => 'doctor.internal.dashboard',
+                'doctor' => 'medecin.dashboard',
                 'external_doctor' => 'doctor.external.dashboard',
+                'medecin' => 'external.doctor.external.dashboard',
                 'admin' => 'dashboard',
                 'administrative' => 'dashboard',
                 'nurse' => 'dashboard',
@@ -43,6 +45,18 @@ class RedirectByRole
                 ],
                 'external_doctor' => [
                     'doctor.external.*',
+                    'external.*',
+                    'patients.show',
+                    'patients.medical-file',
+                    'appointments.*',
+                    'prescriptions.*',
+                    'medical-records.*',
+                    'profile.*',
+                    'logout'
+                ],
+                'medecin' => [
+                    'doctor.external.*',
+                    'external.*',
                     'patients.show',
                     'patients.medical-file',
                     'appointments.*',

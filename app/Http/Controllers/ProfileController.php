@@ -18,10 +18,21 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         
-        // Return different views based on user role
         if ($user->role === 'admin') {
             return view('admin.profile', [
                 'user' => $user,
+            ]);
+        }
+
+        if ($user->isDoctor()) {
+            $user->load(['service', 'hospital']);
+            $availability = \App\Models\DoctorAvailability::where('doctor_id', $user->id)
+                ->orderByRaw("FIELD(day_of_week, 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday')")
+                ->get();
+                
+            return view('medecin.profile', [
+                'user' => $user,
+                'availability' => $availability
             ]);
         }
         

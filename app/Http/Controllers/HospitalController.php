@@ -114,15 +114,37 @@ class HospitalController extends Controller
                 return back()->withErrors(['identifier' => 'Votre compte a été désactivé.']);
             }
 
+            // Gestion de l'ID d'hôpital en session
+            if (isset($user->hospital_id)) {
+                $request->session()->put('hospital_id', $user->hospital_id);
+            }
+
             // Redirection selon le rôle
             return match($user->role) {
-                'doctor' => redirect()->route('medecin.dashboard'),
+                'doctor', 'internal_doctor' => redirect()->route('medecin.dashboard'),
                 'nurse' => redirect()->route('nurse.dashboard'),
-                'internal_doctor' => redirect()->route('doctor.internal.dashboard'),
-                'external_doctor' => redirect()->route('doctor.external.dashboard'),
+                'medecin', 'external_doctor' => redirect()->route('external.doctor.external.dashboard'),
                 'cashier' => redirect()->route('cashier.dashboard'),
                 default => redirect()->intended(route('dashboard'))
             };
+        }
+
+        // Essayer de connecter un médecin externe (spécialiste dans sa propre table)
+        $specialist = \App\Models\MedecinExterne::where('email', $identifier)->first();
+        if ($specialist && auth()->guard('medecin_externe')->attempt(['email' => $identifier, 'password' => $password], $remember)) {
+            $request->session()->regenerate();
+
+            if ($specialist->statut !== 'actif') {
+                auth()->guard('medecin_externe')->logout();
+                return back()->withErrors(['identifier' => 'Votre compte a été désactivé ou est en attente de validation.']);
+            }
+
+            // Pas de hospital_id pour les spécialistes externes généralement, mais on reste prudent
+            if (isset($specialist->hospital_id)) {
+                $request->session()->put('hospital_id', $specialist->hospital_id);
+            }
+
+            return redirect()->route('external.doctor.external.dashboard');
         }
 
         // Si échec, essayer la connexion patient

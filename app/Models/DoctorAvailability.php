@@ -6,6 +6,7 @@ use App\Traits\BelongsToHospital;
 use Illuminate\Database\Eloquent\{Model, Factories\HasFactory, SoftDeletes};
 class DoctorAvailability extends Model
 {
+    protected $table = 'doctor_availability';
     use HasFactory;
      use BelongsToHospital;
 

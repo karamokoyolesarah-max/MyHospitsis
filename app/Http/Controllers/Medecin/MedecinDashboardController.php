@@ -13,7 +13,16 @@ class MedecinDashboardController extends Controller
 {
     public function index()
     {
-        $medecin = Auth::user();
+        $medecin = auth()->user() ?: auth()->guard('medecin_externe')->user();
+
+        if (!$medecin) {
+            return redirect()->route('login')->withErrors(['identifier' => 'Session expirée ou utilisateur non trouvé.']);
+        }
+
+        // Failsafe: Rediriger les médecins externes vers leur propre tableau de bord
+        if ($medecin instanceof \App\Models\MedecinExterne || $medecin->role === 'medecin') {
+            return redirect()->route('external.doctor.external.dashboard');
+        }
 
         // 1. Récupération des patients avec leurs constantes (Eager Loading)
         // On charge 'derniersSignes' pour éviter les tirets "--" sur le dashboard
@@ -43,6 +52,7 @@ class MedecinDashboardController extends Controller
         })->count();
 
         return view('medecin.dashboard', compact(
+            'medecin',
             'hospitalizedPatients', 
             'pendingExams', 
             'criticalPatients', 

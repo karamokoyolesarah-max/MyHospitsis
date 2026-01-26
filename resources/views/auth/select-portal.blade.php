@@ -103,11 +103,11 @@
                             <i class="fas fa-stethoscope text-white text-3xl"></i>
                         </div>
                         <h3 class="text-3xl font-black text-slate-900 mb-4">Médecin Externe</h3>
-                        <p class="text-slate-600 mb-8 text-lg leading-relaxed flex-grow">Rejoignez notre réseau pour suivre vos patients et collaborer avec l'hôpital.</p>
+                        <p class="text-slate-600 mb-8 text-lg leading-relaxed flex-grow">Rejoignez notre réseau pour suivre vos patients </p>
                         
-                        <a href="{{ route('external.login') }}" class="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-5 rounded-2xl font-bold hover:from-green-600 hover:to-green-700 transform hover:scale-105 hover:-translate-y-1 transition-all duration-300 shadow-lg w-full justify-center">
-                            <i class="fas fa-user-md text-xl"></i>
-                            <span>Se connecter comme Médecin</span>
+                        <a href="{{ route('external.register') }}" class="inline-flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-5 rounded-2xl font-bold hover:from-green-600 hover:to-green-700 transform hover:scale-105 hover:-translate-y-1 transition-all duration-300 shadow-lg w-full justify-center">
+                            <i class="fas fa-user-plus text-xl"></i>
+                            <span>S'inscrire comme Médecin</span>
                         </a>
                     </div>
                 </div>

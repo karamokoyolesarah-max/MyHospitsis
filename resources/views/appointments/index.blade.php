@@ -96,12 +96,18 @@
                                 <div class="text-sm font-medium text-gray-900">{{ $appointment->patient->full_name }}</div>
                                 <div class="text-sm text-gray-500">{{ $appointment->patient->ipu }}</div>
                             @else
-                                <div class="text-sm font-medium text-red-600">Patient supprimé</div>
+                                <div class="text-sm font-medium text-red-600">Patient introuvable</div>
                                 <div class="text-sm text-gray-500">N/A</div>
                             @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {{ $appointment->doctor ? $appointment->doctor->name : 'Médecin supprimé' }}
+                            @if($appointment->doctor)
+                                {{ $appointment->doctor->name }}
+                            @else
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    Non assigné
+                                </span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ $appointment->service ? $appointment->service->name : 'Service supprimé' }}

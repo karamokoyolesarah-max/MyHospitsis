@@ -118,13 +118,34 @@ if ($user->role === 'admin' || $user->role === 'super_admin') {
     // On compte les dossiers vitaux reçus
     $pendingExams = \App\Models\PatientVital::where('hospital_id', $user->hospital_id)->count();
 
+    // Récupérer les jours où ce médecin est disponible
+    $availableDays = \App\Models\DoctorAvailability::where('doctor_id', $user->id)
+        ->where('is_active', true)
+        ->pluck('day_of_week')
+        ->toArray();
+
+    // Récupérer les rendez-vous en attente d'attribution (même service)
+    // FILTRE : Uniquement si la date du RDV correspond à un jour ouvré du médecin
+    $pendingServiceAppointments = \App\Models\Appointment::with(['patient', 'service'])
+        ->where('hospital_id', $user->hospital_id)
+        ->where('service_id', $user->service_id)
+        ->where('status', 'pending')
+        ->whereNull('doctor_id')
+        ->get()
+        ->filter(function($appointment) use ($availableDays) {
+            // Conversion du jour de la semaine en format anglais (ex: 'monday')
+            $dayName = strtolower(Carbon::parse($appointment->appointment_datetime)->format('l'));
+            return in_array($dayName, $availableDays);
+        });
+
     return view('medecin.dashboard', array_merge(compact(
         'stats',
         'todayAppointments',
         'criticalObservations',
         'myPatients',
         'criticalPatients',
-        'pendingExams'
+        'pendingExams',
+        'pendingServiceAppointments'
     ), ['hospitalizedPatients' => $myPatients]));
 }
 
