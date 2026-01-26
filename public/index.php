@@ -7,14 +7,11 @@ define('LARAVEL_START', microtime(true));
 
 // Fix for subdirectory hosting on Namecheap - modify global $_SERVER before Laravel captures it
 if (isset($_SERVER['REQUEST_URI'])) {
-    // Remove /MyHospitsis/public if present
-    if (strpos($_SERVER['REQUEST_URI'], '/MyHospitsis/public') === 0) {
-        $_SERVER['REQUEST_URI'] = substr($_SERVER['REQUEST_URI'], strlen('/MyHospitsis/public')) ?: '/';
-    } 
-    // Or just remove /MyHospitsis if that's the base
-    elseif (strpos($_SERVER['REQUEST_URI'], '/MyHospitsis') === 0) {
-        $_SERVER['REQUEST_URI'] = substr($_SERVER['REQUEST_URI'], strlen('/MyHospitsis')) ?: '/';
-    }
+    $uri = $_SERVER['REQUEST_URI'];
+    $uri = str_replace('/MyHospitsis/public', '', $uri);
+    $uri = str_replace('/MyHospitsis', '', $uri);
+    if (empty($uri) || $uri === '') $uri = '/';
+    $_SERVER['REQUEST_URI'] = $uri;
 }
 
 // Determine if the application is in maintenance mode...
