@@ -5,6 +5,18 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
+// Fix for subdirectory hosting on Namecheap - modify global $_SERVER before Laravel captures it
+if (isset($_SERVER['REQUEST_URI'])) {
+    // Remove /MyHospitsis/public if present
+    if (strpos($_SERVER['REQUEST_URI'], '/MyHospitsis/public') === 0) {
+        $_SERVER['REQUEST_URI'] = substr($_SERVER['REQUEST_URI'], strlen('/MyHospitsis/public')) ?: '/';
+    } 
+    // Or just remove /MyHospitsis if that's the base
+    elseif (strpos($_SERVER['REQUEST_URI'], '/MyHospitsis') === 0) {
+        $_SERVER['REQUEST_URI'] = substr($_SERVER['REQUEST_URI'], strlen('/MyHospitsis')) ?: '/';
+    }
+}
+
 // Determine if the application is in maintenance mode...
 if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
     require $maintenance;
@@ -17,13 +29,4 @@ require __DIR__.'/../vendor/autoload.php';
 /** @var Application $app */
 $app = require_once __DIR__.'/../bootstrap/app.php';
 
-$request = Request::capture();
-
-// Fix for subdirectory hosting on Namecheap
-if (strpos($request->getRequestUri(), '/MyHospitsis') === 0) {
-    $newUri = substr($request->getRequestUri(), strlen('/MyHospitsis'));
-    if (empty($newUri)) $newUri = '/';
-    $request->server->set('REQUEST_URI', $newUri);
-}
-
-$app->handleRequest($request);
+$app->handleRequest(Request::capture());
