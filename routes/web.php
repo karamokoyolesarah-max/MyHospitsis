@@ -36,6 +36,16 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+// Route de diagnostic pour les erreurs 404 en sous-dossier
+Route::get('/debug-url', function () {
+    return response()->json([
+        'uri' => request()->getRequestUri(),
+        'path' => request()->path(),
+        'base_url' => request()->getBaseUrl(),
+        'app_url' => config('app.url'),
+    ]);
+});
+
 // Sélection de portail pour l'inscription
 Route::get('/select-portal', function () {
     return view('auth.select-portal');
