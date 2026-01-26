@@ -1,4 +1,4 @@
-# Disable directory listing
-Options -Indexes
-
-# No redirection, access via /public directly
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
