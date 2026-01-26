@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('hospitals', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('slug')->unique();
+            $table->string('slug', 191)->unique();
             $table->string('address')->nullable();
             $table->timestamps();
         });
@@ -21,7 +21,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('hospital_id')->constrained()->cascadeOnDelete(); 
             $table->string('name');
-            $table->string('code')->unique();
+            $table->string('code', 191)->unique();
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
@@ -51,7 +51,7 @@ return new class extends Migration
         Schema::create('patients', function (Blueprint $table) {
              $table->id();
             $table->foreignId('hospital_id')->constrained()->cascadeOnDelete(); // AJOUT ICI
-            $table->string('ipu')->unique();
+            $table->string('ipu', 191)->unique();
             $table->string('name');
             $table->string('first_name');
             $table->date('dob')->comment('Date of Birth');
@@ -164,7 +164,7 @@ return new class extends Migration
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
             $table->foreignId('hospital_id')->constrained()->cascadeOnDelete();
-            $table->string('invoice_number')->unique();
+            $table->string('invoice_number', 191)->unique();
             $table->foreignId('patient_id')->constrained()->cascadeOnDelete();
             $table->decimal('total', 10, 2);
             $table->timestamps();
@@ -189,7 +189,7 @@ return new class extends Migration
             $table->foreignId('hospital_id')->nullable()->constrained()->cascadeOnDelete(); // AJOUTÉ
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('action');
-            $table->string('resource_type');
+            $table->string('resource_type', 100);
             $table->unsignedBigInteger('resource_id')->nullable();
             $table->text('description')->nullable();
             $table->json('old_values')->nullable();

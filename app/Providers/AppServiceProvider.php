@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\{Gate, Blade, Auth};
+use Illuminate\Support\Facades\{Gate, Blade, Auth, Schema};
 use App\Auth\PatientUserProvider;
 use App\Models\Patient;
 
@@ -16,6 +16,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Schema::defaultStringLength(191);
+
         // Enregistrer le provider personnalisé pour patients
         Auth::provider('patient', function ($app, array $config) {
             return new PatientUserProvider($app['hash'], Patient::class);
