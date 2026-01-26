@@ -14,16 +14,10 @@ if (isset($_GET['debug_server'])) {
 
 // Fix for subdirectory hosting on Namecheap - modify global $_SERVER before Laravel captures it
 if (isset($_SERVER['REQUEST_URI'])) {
-    // On récupère le chemin du dossier actuel (ex: /MyHospitsis/public)
-    $basePath = implode('/', array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1));
     $uri = $_SERVER['REQUEST_URI'];
-    
-    // On retire ce chemin de l'URL pour que Laravel ne voit que la route
-    if (strpos($uri, $basePath) === 0) {
-        $uri = substr($uri, strlen($basePath));
-    }
-    
-    // On s'assure que ça commence par / et que ce n'est pas vide
+    // Remove the subdirectory path and /public if they exist
+    $uri = preg_replace('/^\/MyHospitsis(\/public)?/', '', $uri);
+    // Ensure we have a leading slash and it's not empty
     $uri = '/' . ltrim($uri, '/');
     $_SERVER['REQUEST_URI'] = $uri;
 }
