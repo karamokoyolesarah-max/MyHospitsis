@@ -3,7 +3,14 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 
-define('LARAVEL_START', microtime(true));
+if (isset($_GET['debug_server'])) {
+    die('<pre>' . print_r([
+        'REQUEST_URI' => $_SERVER['REQUEST_URI'] ?? 'N/A',
+        'SCRIPT_NAME' => $_SERVER['SCRIPT_NAME'] ?? 'N/A',
+        'PHP_SELF' => $_SERVER['PHP_SELF'] ?? 'N/A',
+        'DOCUMENT_ROOT' => $_SERVER['DOCUMENT_ROOT'] ?? 'N/A',
+    ], true) . '</pre>');
+}
 
 // Fix for subdirectory hosting on Namecheap - modify global $_SERVER before Laravel captures it
 if (isset($_SERVER['REQUEST_URI'])) {
