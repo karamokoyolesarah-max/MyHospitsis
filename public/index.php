@@ -18,4 +18,12 @@ require __DIR__.'/../vendor/autoload.php';
 $app = require_once __DIR__.'/../bootstrap/app.php';
 
 $request = Request::capture();
+
+// Fix for subdirectory hosting on Namecheap
+if (strpos($request->getRequestUri(), '/MyHospitsis') === 0) {
+    $newUri = substr($request->getRequestUri(), strlen('/MyHospitsis'));
+    if (empty($newUri)) $newUri = '/';
+    $request->server->set('REQUEST_URI', $newUri);
+}
+
 $app->handleRequest($request);
