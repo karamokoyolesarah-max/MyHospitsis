@@ -188,7 +188,7 @@
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="p-5 border-b border-gray-50 flex justify-between items-center">
                 <h3 class="text-xs font-black text-gray-800 uppercase tracking-widest flex items-center gap-2">
-                    <i class="fas fa-list text-gray-400"></i> Dernières Transactions
+                    <i class="fas fa-list text-gray-400"></i> Dernières Factures Patients
                 </h3>
                 <a href="{{ route('admin.finance.export') }}" class="text-[10px] font-black uppercase text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
                     <i class="fas fa-download mr-1"></i> Exporter Tout
@@ -237,6 +237,43 @@
                             </tr>
                         @empty
                             <tr><td colspan="5" class="py-10 text-center text-gray-400 text-xs italic">Aucune donnée récente</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- TREASURY MOVEMENTS (Logs) --}}
+        <div class="bg-gray-900 rounded-2xl shadow-xl overflow-hidden mt-8">
+            <div class="p-5 border-b border-white/10 flex justify-between items-center">
+                <h3 class="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                    <i class="fas fa-vault text-blue-400"></i> Mouvements de Trésorerie
+                </h3>
+                <span class="text-[9px] font-black bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Récent</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-white/5">
+                        <tr>
+                            <th class="px-5 py-3 text-[9px] font-black text-gray-400 uppercase tracking-wider">Date</th>
+                            <th class="px-5 py-3 text-[9px] font-black text-gray-400 uppercase tracking-wider">Description</th>
+                            <th class="px-5 py-3 text-[9px] font-black text-gray-400 uppercase tracking-wider text-right">Montant</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5">
+                        @forelse($latestTransactions as $log)
+                            <tr class="hover:bg-white/5 transition-colors">
+                                <td class="px-5 py-4 text-[10px] font-bold text-gray-500">{{ $log->created_at->format('d/m H:i') }}</td>
+                                <td class="px-5 py-4">
+                                    <p class="text-xs font-black text-white">{{ $log->description }}</p>
+                                    <p class="text-[9px] text-gray-500 uppercase font-bold">{{ $log->source_type }}</p>
+                                </td>
+                                <td class="px-5 py-4 text-right">
+                                    <span class="text-sm font-black text-emerald-400">+ {{ number_format($log->amount, 0, ',', ' ') }} F</span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="3" class="py-10 text-center text-gray-500 text-xs italic">Aucun mouvement de trésorerie</td></tr>
                         @endforelse
                     </tbody>
                 </table>

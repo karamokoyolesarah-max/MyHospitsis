@@ -983,7 +983,7 @@ class SuperAdminController extends Controller
                 'stats' => $stats,
                 'recent_transactions' => $transactions,
                 'hospitals' => Hospital::with('subscriptionPlan')->where('is_active', true)->take(10)->get(),
-                'specialists' => MedecinExterne::with('wallet')->take(5)->get()->map(function($spec) {
+                'specialists' => MedecinExterne::with('wallet')->take(10)->get()->map(function($spec) {
                     return [
                         'id' => $spec->id,
                         'specialist_id' => $spec->id, // Pour la compatibilité JS

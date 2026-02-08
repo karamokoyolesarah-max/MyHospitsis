@@ -17,6 +17,7 @@ class Invoice extends Model
        'status', 'paid_at', 'payment_method', 'payment_operator', 'notes',
        'insurance_name', 'insurance_card_number', 'insurance_coverage_rate',
        'insurance_settlement_status', // Added for recovery tracking
+       'insurance_settled_at', 'insurance_settlement_reference',
        'cashier_id'
     ];
 
@@ -34,6 +35,7 @@ class Invoice extends Model
         'invoice_date' => 'date',
         'due_date' => 'date',
         'paid_at' => 'datetime',
+        'insurance_settled_at' => 'datetime',
         'subtotal' => 'decimal:2',
         'tax' => 'decimal:2',
         'total' => 'decimal:2',

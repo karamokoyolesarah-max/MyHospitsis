@@ -61,6 +61,9 @@
                 <button onclick="switchHospitalTab('prestations')" id="btn-prestations" class="hospital-tab-btn flex items-center gap-2 px-6 py-4 font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-blue-600 transition-all whitespace-nowrap border-b-4 border-transparent">
                     <i class="bi bi-cash-stack"></i> Prestations
                 </button>
+                <button onclick="switchHospitalTab('caisses')" id="btn-caisses" class="hospital-tab-btn flex items-center gap-2 px-6 py-4 font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-orange-600 transition-all whitespace-nowrap border-b-4 border-transparent">
+                    <i class="bi bi-cash-register"></i> Caisses
+                </button>
             </div>
         </div>
 
@@ -100,13 +103,16 @@
                         </div>
 
                         <div class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Actions Réglementaires</label>
-                            <button onclick="initializeCashiers(currentHospitalId)" class="w-full py-4 bg-orange-50 text-orange-600 rounded-2xl font-black text-xs hover:bg-orange-600 hover:text-white transition-all flex items-center justify-center gap-3 border-2 border-orange-100 hover:border-orange-500">
-                                <i class="bi bi-cash-register"></i> DÉPLOYER LES 3 CAISSES TYPES
-                            </button>
-                            <p class="text-[9px] text-slate-400 mt-3 font-medium text-center px-4 leading-relaxed">
-                                Déploie les caisses : <span class="font-bold">Accueil</span>, <span class="font-bold">Pharmacie/Labo</span> et <span class="font-bold">Urgences 24h</span> avec leurs utilisateurs respectifs.
-                            </p>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Instance SaaS</label>
+                            <div class="p-6 bg-blue-50 rounded-[1.5rem] border border-blue-100 flex items-center gap-4">
+                                <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm">
+                                    <i class="bi bi-cloud-check text-2xl"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-black text-slate-900">Domaine Host</div>
+                                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">host.hospitsis.com</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -114,6 +120,36 @@
 
             <!-- Tab: Utilisateurs -->
             <div id="tab-users" class="hospital-tab-pane hidden p-10">
+                <!-- Role Filter Bar (Horizontal Sidebar style) -->
+                <div class="flex gap-4 mb-8 overflow-x-auto no-scrollbar pb-2 border-b border-slate-100">
+                    <div class="flex p-2 bg-slate-100/50 border-2 border-slate-200/50 rounded-[2rem] shadow-inner w-fit gap-2">
+                        <button onclick="filterUsers('all')" class="user-filter-btn active-filter px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-3 whitespace-nowrap" data-role="all">
+                            <i class="bi bi-grid-fill"></i>
+                            Tous
+                        </button>
+                        <button onclick="filterUsers('doctor')" class="user-filter-btn px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-blue-600 transition-all flex items-center gap-3 whitespace-nowrap bg-white border border-slate-200" data-role="doctor">
+                            <i class="bi bi-person-pulse-fill"></i>
+                            Docteurs
+                        </button>
+                        <button onclick="filterUsers('nurse')" class="user-filter-btn px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-blue-600 transition-all flex items-center gap-3 whitespace-nowrap bg-white border border-slate-200" data-role="nurse">
+                            <i class="bi bi-bandaid-fill"></i>
+                            Infirmiers
+                        </button>
+                        <button onclick="filterUsers('cashier')" class="user-filter-btn px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-blue-600 transition-all flex items-center gap-3 whitespace-nowrap bg-white border border-slate-200" data-role="cashier">
+                            <i class="bi bi-cash-stack"></i>
+                            Caissiers
+                        </button>
+                        <button onclick="filterUsers('technician')" class="user-filter-btn px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-blue-600 transition-all flex items-center gap-3 whitespace-nowrap bg-white border border-slate-200" data-role="technician">
+                            <i class="bi bi-flask-fill"></i>
+                            Labo / Tech
+                        </button>
+                        <button onclick="filterUsers('administrative')" class="user-filter-btn px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-blue-600 transition-all flex items-center gap-3 whitespace-nowrap bg-white border border-slate-200" data-role="administrative">
+                            <i class="bi bi-shield-lock-fill"></i>
+                            Admin
+                        </button>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="usersList">
                     <!-- Users populated by JS -->
                 </div>
@@ -139,6 +175,52 @@
                     <!-- Prestations populated by JS -->
                 </div>
             </div>
+
+            <!-- Tab: Caisses -->
+            <div id="tab-caisses" class="hospital-tab-pane hidden p-10">
+                <div class="max-w-4xl mx-auto">
+                    <div class="bg-white p-12 rounded-[3rem] border-2 border-slate-100 shadow-xl text-center">
+                        <div class="w-24 h-24 bg-orange-100 text-orange-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-lg shadow-orange-100">
+                            <i class="bi bi-cash-register text-5xl"></i>
+                        </div>
+                        <h3 class="text-3xl font-black text-slate-900 mb-4 tracking-tighter">Configuration des Caisses</h3>
+                        <p class="text-slate-500 font-medium text-lg mb-10 max-w-xl mx-auto">
+                            Initialisez les 3 caisses réglementaires (Accueil, Pharmacie/Labo, Urgences) avec leurs comptes utilisateurs par défaut.
+                        </p>
+                        
+                        <div class="grid md:grid-cols-3 gap-6 mb-12 text-left">
+                            <div class="p-6 bg-slate-50 rounded-3xl border border-slate-200">
+                                <div class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-2">Caisse 1</div>
+                                <div class="font-black text-slate-900">ACCUEIL</div>
+                                <div class="text-xs text-slate-400 font-bold">Consultations & Hospitalisations</div>
+                            </div>
+                            <div class="p-6 bg-slate-50 rounded-3xl border border-slate-200">
+                                <div class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-2">Caisse 2</div>
+                                <div class="font-black text-slate-900">RECOUVREMENT</div>
+                                <div class="text-xs text-slate-400 font-bold">Pharmacie, Labo & Imagerie</div>
+                            </div>
+                            <div class="p-6 bg-slate-50 rounded-3xl border border-slate-200">
+                                <div class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-2">Caisse 3</div>
+                                <div class="font-black text-slate-900">URGENCES</div>
+                                <div class="text-xs text-slate-400 font-bold">Salles de soins 24h/24</div>
+                            </div>
+                        </div>
+
+                        <div id="caisseActionContainer">
+                            <button onclick="initializeCashiers(currentHospitalId)" class="w-full py-6 bg-gradient-to-r from-orange-600 to-orange-500 text-white rounded-3xl font-black text-lg hover:from-orange-700 hover:to-orange-600 transition-all shadow-2xl shadow-orange-200 flex items-center justify-center gap-4 group hover:scale-[1.02]">
+                                <i class="bi bi-magic text-2xl"></i>
+                                INITIALISER LES 3 CAISSES TYPES
+                                <i class="bi bi-arrow-right text-xl group-hover:translate-x-1 transition-transform"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="mt-8 flex items-center justify-center gap-2 text-[11px] font-black text-slate-400 uppercase tracking-widest">
+                            <i class="bi bi-shield-lock-fill text-orange-400"></i>
+                            Action irréversible • Déploiement groupé
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -151,10 +233,21 @@
         border-bottom-color: #2563eb !important;
         background: rgba(37, 99, 235, 0.05);
     }
+    #btn-caisses.active-hospital-tab {
+        color: #ea580c !important;
+        border-bottom-color: #ea580c !important;
+        background: rgba(234, 88, 12, 0.05);
+    }
+    .user-filter-btn.active-filter {
+        background: #2563eb;
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+    }
 </style>
 
 <script>
     let currentHospitalId = null;
+    let cachedUsers = [];
 
     function openHospitalDetails(hospitalId) {
         currentHospitalId = hospitalId;
@@ -182,6 +275,7 @@
         modal.classList.add('hidden');
         modal.classList.remove('flex');
         currentHospitalId = null;
+        cachedUsers = [];
     }
 
     function initializeCashiers(hospitalId) {
@@ -250,11 +344,80 @@
         document.getElementById('statsPrestations').textContent = stats.total_prestations;
         document.getElementById('statsActiveUsers').textContent = stats.active_users;
 
+        // Cache users for filtering
+        cachedUsers = hospital.users || [];
+        
+        // Reset role filter UI
+        document.querySelectorAll('.user-filter-btn').forEach(btn => {
+            btn.classList.remove('active-filter');
+            btn.classList.add('text-slate-400');
+            if(btn.dataset.role === 'all') {
+                btn.classList.add('active-filter');
+                btn.classList.remove('text-slate-400');
+            }
+        });
+
         // Render Lists
-        renderUsers(hospital.users);
+        renderUsers(cachedUsers);
         renderServices(hospital.services);
         renderPatients(hospital.patients);
         renderPrestations(hospital.prestations);
+
+        // Update Caisses button status
+        const caisseContainer = document.getElementById('caisseActionContainer');
+        if (stats.total_cashiers >= 3) {
+            caisseContainer.innerHTML = `
+                <div class="p-6 bg-emerald-50 rounded-3xl border-2 border-emerald-100 flex items-center justify-center gap-4 text-emerald-700 font-black">
+                    <i class="bi bi-check-circle-fill text-2xl"></i>
+                    LES 3 CAISSES ONT ÉTÉ INITIALISÉES AVEC SUCCÈS
+                </div>
+            `;
+        } else {
+            caisseContainer.innerHTML = `
+                <button onclick="initializeCashiers(${hospital.id})" class="w-full py-6 bg-gradient-to-r from-orange-600 to-orange-500 text-white rounded-3xl font-black text-lg hover:from-orange-700 hover:to-orange-600 transition-all shadow-2xl shadow-orange-200 flex items-center justify-center gap-4 group hover:scale-[1.02]">
+                    <i class="bi bi-magic text-2xl"></i>
+                    INITIALISER LES 3 CAISSES TYPES
+                    <i class="bi bi-arrow-right text-xl group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            `;
+        }
+    }
+
+    function filterUsers(category) {
+        // Toggle UI
+        document.querySelectorAll('.user-filter-btn').forEach(btn => {
+            btn.classList.remove('active-filter');
+            btn.classList.add('text-slate-400');
+            if(btn.dataset.role === category) {
+                btn.classList.add('active-filter');
+                btn.classList.remove('text-slate-400');
+            }
+        });
+
+        // Role Groupings
+        const groupings = {
+            'doctor': ['doctor', 'internal_doctor', 'external_doctor', 'medecin', 'medecin_externe', 'doctor_lab'],
+            'nurse': ['nurse'],
+            'cashier': ['cashier', 'receptionist', 'receptioniste'],
+            'technician': ['doctor_lab', 'technician', 'biologist', 'technicien', 'lab_doctor', 'laborantin'],
+            'administrative': ['admin', 'administrative', 'superadmin']
+        };
+
+        // Apply filter
+        if(category === 'all') {
+            renderUsers(cachedUsers);
+        } else {
+            const roles = groupings[category] || [category];
+            const filtered = cachedUsers.filter(u => {
+                const role = (u.role || '').toLowerCase().trim();
+                // Check exact match or match after replacing underscores with spaces
+                return roles.some(r => {
+                    const normalizedR = r.toLowerCase().trim();
+                    return normalizedR === role || normalizedR === role.replace('_', ' ') || normalizedR.replace('_', ' ') === role;
+                });
+            });
+            renderUsers(filtered);
+        }
     }
 
     function renderUsers(users) {

@@ -25,10 +25,15 @@
     <div class="grid md:grid-cols-2 gap-8">
         <!-- Hospitals Section -->
         <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-8 text-left">
-            <h3 class="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
-                <span class="w-2 h-8 bg-blue-600 rounded-full"></span>
-                Abonnements Hôpitaux (SaaS)
-            </h3>
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-black text-slate-900 flex items-center gap-3">
+                    <span class="w-2 h-8 bg-blue-600 rounded-full"></span>
+                    Abonnements Hôpitaux (SaaS)
+                </h3>
+                <a href="{{ route('superadmin.hospitals.index') }}" class="text-blue-600 hover:text-blue-700 font-bold text-sm bg-blue-50 px-4 py-2 rounded-xl transition-all flex items-center gap-2 group">
+                    Voir tout <i class="bi bi-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                </a>
+            </div>
             <div class="space-y-4" id="hospitalsFinancialList">
                 <!-- Hospitals financial data will be loaded here -->
             </div>
@@ -36,10 +41,15 @@
 
         <!-- Specialists Section -->
         <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-8 text-left">
-            <h3 class="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
-                <span class="w-2 h-8 bg-purple-600 rounded-full"></span>
-                Portefeuilles Spécialistes (Yango)
-            </h3>
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-black text-slate-900 flex items-center gap-3">
+                    <span class="w-2 h-8 bg-purple-600 rounded-full"></span>
+                    Portefeuilles Spécialistes (Yango)
+                </h3>
+                <a href="{{ route('superadmin.specialists.index') }}" class="text-purple-600 hover:text-purple-700 font-bold text-sm bg-purple-50 px-4 py-2 rounded-xl transition-all flex items-center gap-2 group">
+                    Voir tout <i class="bi bi-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                </a>
+            </div>
             <div class="space-y-4" id="specialistsFinancialList">
                 <!-- Specialists financial data will be loaded here -->
             </div>

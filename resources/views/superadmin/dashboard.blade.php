@@ -90,8 +90,8 @@
                 <button onclick="switchTab('financial-monitoring')" id="btn-financial-monitoring" class="tab-btn flex items-center gap-2 px-6 py-4 font-bold text-sm text-slate-500 hover:text-blue-600 hover:bg-slate-50 transition-all whitespace-nowrap">
                     <i class="bi bi-graph-up"></i> Monitoring & Portefeuilles
                 </button>
-                <button onclick="switchTab('invoices')" id="btn-invoices" class="tab-btn flex items-center gap-2 px-6 py-4 font-bold text-sm text-slate-500 hover:text-blue-600 hover:bg-slate-50 transition-all whitespace-nowrap">
-                    <i class="bi bi-receipt"></i> Factures & Revenus
+                <button onclick="switchTab('profile')" id="btn-profile" class="tab-btn flex items-center gap-2 px-6 py-4 font-bold text-sm text-slate-500 hover:text-blue-600 hover:bg-slate-50 transition-all whitespace-nowrap">
+                    <i class="bi bi-person-circle"></i> Mon Profil
                 </button>
             </div>
         </div>
@@ -127,7 +127,7 @@
         @include('superadmin.tabs.commission-rates')
 
         @include('superadmin.tabs.financial-monitoring')
-        @include('superadmin.tabs.invoices')
+        @include('superadmin.tabs.profile')
 
     </div>
 
@@ -298,120 +298,7 @@
         </div>
     </div>
 
-    <!-- Modal Détails Hôpital -->
-    <div id="hospitalDetailsModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden">
-        <div class="bg-white shadow-2xl w-full h-full overflow-hidden flex flex-col">
-            <div class="p-8 border-b border-slate-200">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-2xl font-black text-slate-900" id="modalHospitalName">Détails de l'Hôpital</h3>
-                        <p class="text-slate-500 mt-1">Surveillance et gestion de l'infrastructure hospitalière</p>
-                    </div>
-                    <button onclick="closeHospitalDetailsModal()" class="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-100 rounded-xl transition-colors">
-                        <i class="bi bi-x-lg text-xl"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Stats Bar -->
-            <div class="px-8 py-4 bg-slate-50 border-b border-slate-200">
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="text-center">
-                        <div class="text-2xl font-black text-slate-900" id="statsUsers">0</div>
-                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Utilisateurs</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-black text-slate-900" id="statsServices">0</div>
-                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Services</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-black text-slate-900" id="statsPrestations">0</div>
-                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Prestations</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-black text-slate-900" id="statsActiveUsers">0</div>
-                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Utilisateurs Actifs</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tabs -->
-            <div class="bg-white border-b border-slate-200">
-                <div class="flex gap-2 px-8 overflow-x-auto no-scrollbar">
-                    <button onclick="switchHospitalTab('company')" id="btn-company" class="hospital-tab-btn active-hospital-tab flex items-center gap-2 px-6 py-4 font-bold text-sm transition-all whitespace-nowrap">
-                        <i class="bi bi-building"></i> Entreprise
-                    </button>
-                    <button onclick="switchHospitalTab('users')" id="btn-users" class="hospital-tab-btn flex items-center gap-2 px-6 py-4 font-bold text-sm text-slate-500 hover:text-blue-600 hover:bg-slate-50 transition-all whitespace-nowrap">
-                        <i class="bi bi-people"></i> Utilisateurs
-                    </button>
-                    <button onclick="switchHospitalTab('services')" id="btn-services" class="hospital-tab-btn flex items-center gap-2 px-6 py-4 font-bold text-sm text-slate-500 hover:text-blue-600 hover:bg-slate-50 transition-all whitespace-nowrap">
-                        <i class="bi bi-hospital"></i> Services
-                    </button>
-                    <button onclick="switchHospitalTab('prestations')" id="btn-prestations" class="hospital-tab-btn flex items-center gap-2 px-6 py-4 font-bold text-sm text-slate-500 hover:text-blue-600 hover:bg-slate-50 transition-all whitespace-nowrap">
-                        <i class="bi bi-cash-stack"></i> Prestations
-                    </button>
-                </div>
-            </div>
-
-            <!-- Tab Content -->
-            <div class="overflow-y-auto" style="height: calc(100vh - 200px);">
-                <!-- Tab Entreprise -->
-                <div id="tab-company" class="hospital-tab-pane active p-8">
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <div class="space-y-6">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Nom de l'Hôpital</label>
-                                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                                    <span class="font-bold text-slate-900" id="companyName">-</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Adresse</label>
-                                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                                    <span class="text-slate-900" id="companyAddress">-</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="space-y-6">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Statut</label>
-                                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                                    <span class="font-bold" id="companyStatus">-</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Plan Souscrit</label>
-                                <div class="p-4 bg-indigo-50 rounded-xl border border-indigo-200">
-                                    <span class="font-bold text-indigo-700">Premium Plan</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tab Utilisateurs -->
-                <div id="tab-users" class="hospital-tab-pane p-8">
-                    <div class="space-y-4" id="usersList">
-                        <!-- Users will be populated here -->
-                    </div>
-                </div>
-
-                <!-- Tab Services -->
-                <div id="tab-services" class="hospital-tab-pane p-8">
-                    <div class="space-y-4" id="servicesList">
-                        <!-- Services will be populated here -->
-                    </div>
-                </div>
-
-                <!-- Tab Prestations -->
-                <div id="tab-prestations" class="hospital-tab-pane p-8">
-                    <div class="space-y-6" id="prestationsList">
-                        <!-- Prestations will be populated here -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('superadmin.partials.hospital-details-modal')
 
     <script>
         // === COMMISSION BRACKETS MANAGEMENT ===
@@ -542,6 +429,7 @@
         }
 
         function switchTab(tabId) {
+            console.log('Switching to tab:', tabId);
             // Logique de masquage
             document.querySelectorAll('.tab-pane').forEach(el => {
                 el.classList.remove('active');
@@ -563,12 +451,14 @@
                 targetBtn.classList.remove('text-slate-500');
 
                 // Load data for specific tabs
-                if (tabId === 'invoices') {
-                    refreshInvoicesData();
+                if (tabId === 'financial-monitoring') {
+                    refreshFinancialData();
                 }
 
                 // Feedback Haptique Visuel (Scroll au top lors du changement d'onglet)
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                console.error('Tab not found:', tabId, {targetContent, targetBtn});
             }
         }
 
@@ -590,7 +480,7 @@
         });
 
         // Toggle hospital status
-        function toggleHospitalStatus(hospitalId, isActive) {
+        function toggleHospitalStatus(hospitalId, isActive, checkboxEl) {
             fetch(`{{ url('admin-system/hospitals') }}/${hospitalId}/toggle-status`, {
                 method: 'POST',
                 headers: {
@@ -602,209 +492,28 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Update the status text
-                    const statusSpan = event.target.closest('label').querySelector('span:last-child');
-                    statusSpan.textContent = isActive ? 'ACTIF' : 'INACTIF';
+                    // Update the status text if element exists
+                    if (checkboxEl) {
+                        const statusSpan = checkboxEl.closest('label').querySelector('span:last-child');
+                        if (statusSpan) statusSpan.textContent = isActive ? 'ACTIF' : 'INACTIF';
+                    }
 
                     // Show success message
                     showNotification('Statut de l\'hôpital mis à jour avec succès', 'success');
                 } else {
                     // Revert the toggle
-                    event.target.checked = !isActive;
+                    if (checkboxEl) checkboxEl.checked = !isActive;
                     showNotification('Erreur lors de la mise à jour du statut', 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 // Revert the toggle
-                event.target.checked = !isActive;
+                if (checkboxEl) checkboxEl.checked = !isActive;
                 showNotification('Erreur lors de la mise à jour du statut', 'error');
             });
         }
 
-        // Open hospital details modal
-        function openHospitalDetails(hospitalId) {
-            // Fetch hospital details
-            fetch(`{{ url('admin-system/hospitals') }}/${hospitalId}/details`, {
-                method: 'GET',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                credentials: 'same-origin'
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                populateHospitalModal(data);
-                document.getElementById('hospitalDetailsModal').classList.remove('hidden');
-                document.getElementById('hospitalDetailsModal').classList.add('flex');
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Erreur lors du chargement des détails de l\'hôpital', 'error');
-            });
-        }
-
-        // Populate hospital details modal
-        function populateHospitalModal(data) {
-            const { hospital, stats } = data;
-
-            // Update modal title
-            document.getElementById('modalHospitalName').textContent = hospital.name;
-
-            // Tab 1: Entreprise (Company Info)
-            document.getElementById('companyName').textContent = hospital.name;
-            document.getElementById('companyAddress').textContent = hospital.address || 'Adresse non spécifiée';
-            document.getElementById('companyStatus').textContent = hospital.is_active ? 'ACTIF' : 'INACTIF';
-            document.getElementById('companyStatus').className = hospital.is_active ?
-                'px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800' :
-                'px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800';
-
-            // Tab 2: Utilisateurs (Users)
-            const usersContainer = document.getElementById('usersList');
-            usersContainer.innerHTML = '';
-
-            if (hospital.users && hospital.users.length > 0) {
-                hospital.users.forEach(user => {
-                    const userDiv = document.createElement('div');
-                    userDiv.className = 'flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200';
-                    userDiv.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 font-bold">
-                                ${user.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                                <div class="font-bold text-slate-900">${user.name}</div>
-                                <div class="text-sm text-slate-500">${user.email}</div>
-                                <div class="text-xs text-slate-400">${user.service ? user.service.name : 'Aucun service'}</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <span class="px-2 py-1 rounded-full text-xs font-bold ${user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                                ${user.is_active ? 'ACTIF' : 'INACTIF'}
-                            </span>
-                            <div class="text-xs text-slate-400 mt-1 capitalize">${user.role.replace('_', ' ')}</div>
-                        </div>
-                    `;
-                    usersContainer.appendChild(userDiv);
-                });
-            } else {
-                usersContainer.innerHTML = '<div class="text-center text-slate-500 py-8">Aucun utilisateur trouvé</div>';
-            }
-
-            // Tab 3: Services (Departments)
-            const servicesContainer = document.getElementById('servicesList');
-            servicesContainer.innerHTML = '';
-
-            if (hospital.services && hospital.services.length > 0) {
-                hospital.services.forEach(service => {
-                    const serviceDiv = document.createElement('div');
-                    serviceDiv.className = 'p-4 bg-slate-50 rounded-xl border border-slate-200';
-                    serviceDiv.innerHTML = `
-                        <div class="flex items-center justify-between mb-3">
-                            <h4 class="font-bold text-slate-900">${service.name}</h4>
-                            <span class="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
-                                ${service.users ? service.users.length : 0} utilisateurs
-                            </span>
-                        </div>
-                        <div class="text-sm text-slate-600 mb-2">${service.description || 'Aucune description'}</div>
-                        <div class="text-xs text-slate-400">
-                            ${service.prestations ? service.prestations.length : 0} prestations
-                        </div>
-                    `;
-                    servicesContainer.appendChild(serviceDiv);
-                });
-            } else {
-                servicesContainer.innerHTML = '<div class="text-center text-slate-500 py-8">Aucun service trouvé</div>';
-            }
-
-            // Tab 4: Prestations (Services/Pricing)
-            const prestationsContainer = document.getElementById('prestationsList');
-            prestationsContainer.innerHTML = '';
-
-            if (hospital.prestations && hospital.prestations.length > 0) {
-                const groupedPrestations = {};
-                hospital.prestations.forEach(prestation => {
-                    if (!groupedPrestations[prestation.category]) {
-                        groupedPrestations[prestation.category] = [];
-                    }
-                    groupedPrestations[prestation.category].push(prestation);
-                });
-
-                Object.keys(groupedPrestations).forEach(category => {
-                    const categoryDiv = document.createElement('div');
-                    categoryDiv.className = 'mb-6';
-                    categoryDiv.innerHTML = `
-                        <h4 class="font-bold text-slate-900 mb-3 capitalize">${category.replace('_', ' ')}</h4>
-                        <div class="space-y-3">
-                    `;
-
-                    groupedPrestations[category].forEach(prestation => {
-                        const prestationDiv = document.createElement('div');
-                        prestationDiv.className = 'flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200';
-                        prestationDiv.innerHTML = `
-                            <div>
-                                <div class="font-medium text-slate-900">${prestation.name}</div>
-                                <div class="text-sm text-slate-500">${prestation.description || ''}</div>
-                            </div>
-                            <div class="text-right">
-                                <div class="font-bold text-slate-900">${prestation.price} FCFA</div>
-                                <span class="px-2 py-1 rounded-full text-xs font-bold ${prestation.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                                    ${prestation.is_active ? 'ACTIF' : 'INACTIF'}
-                                </span>
-                            </div>
-                        `;
-                        categoryDiv.querySelector('.space-y-3').appendChild(prestationDiv);
-                    });
-
-                    prestationsContainer.appendChild(categoryDiv);
-                });
-            } else {
-                prestationsContainer.innerHTML = '<div class="text-center text-slate-500 py-8">Aucune prestation trouvée</div>';
-            }
-
-            // Update stats
-            document.getElementById('statsUsers').textContent = stats.total_users;
-            document.getElementById('statsServices').textContent = stats.total_services;
-            document.getElementById('statsPrestations').textContent = stats.total_prestations;
-            document.getElementById('statsActiveUsers').textContent = stats.active_users;
-        }
-
-        // Switch hospital tabs
-        function switchHospitalTab(tabId) {
-            // Hide all tab panes
-            document.querySelectorAll('.hospital-tab-pane').forEach(el => {
-                el.classList.remove('active');
-            });
-
-            // Remove active class from all tab buttons
-            document.querySelectorAll('.hospital-tab-btn').forEach(btn => {
-                btn.classList.remove('active-hospital-tab');
-                btn.classList.add('text-slate-500');
-            });
-
-            // Show target tab pane
-            const targetContent = document.getElementById('tab-' + tabId);
-            const targetBtn = document.getElementById('btn-' + tabId);
-
-            if(targetContent && targetBtn) {
-                targetContent.classList.add('active');
-                targetBtn.classList.add('active-hospital-tab');
-                targetBtn.classList.remove('text-slate-500');
-            }
-        }
-
-        // Close hospital details modal
-        function closeHospitalDetailsModal() {
-            document.getElementById('hospitalDetailsModal').classList.add('hidden');
-            document.getElementById('hospitalDetailsModal').classList.remove('flex');
-        }
 
         // Modal functions for Subscription Plans
         function showNewPlanModal() {
@@ -822,13 +531,13 @@
             editingCommissionId = null;
             document.getElementById('newCommissionModal').classList.remove('hidden');
             document.getElementById('newCommissionModal').classList.add('flex');
-        }
-
-        function closeNewCommissionModal() {
-            editingCommissionId = null;
-            document.getElementById('newCommissionModal').classList.add('hidden');
-            document.getElementById('newCommissionModal').classList.remove('flex');
-            document.getElementById('commissionForm').reset();
+            // Clear brackets and add default ones
+            document.getElementById('commissionBrackets').innerHTML = '';
+            commissionBrackets = [];
+            addCommissionBracket('0', '15000', '15');
+            addCommissionBracket('15001', '30000', '20');
+            addCommissionBracket('30001', '', '25');
+            
             // Reset modal title
             const modalTitle = document.querySelector('#newCommissionModal h3');
             if (modalTitle) {
@@ -839,6 +548,17 @@
             if (submitButton) {
                 submitButton.textContent = 'VALIDER LA RÈGLE';
             }
+        }
+
+        function closeNewCommissionModal() {
+            document.getElementById('newCommissionModal').classList.add('hidden');
+            document.getElementById('newCommissionModal').classList.remove('flex');
+            editingCommissionId = null;
+            document.getElementById('commissionForm').reset();
+        }
+
+        function viewSpecialistHistory(specialistId) {
+            showNotification('Historique du spécialiste (ID: ' + specialistId + ') à venir', 'info');
         }
 
         function populateCommissionForm(rate) {
@@ -1362,25 +1082,34 @@
                 if (data.hospitals && data.hospitals.length > 0) {
                     data.hospitals.forEach(hospital => {
                         const hospitalDiv = document.createElement('div');
-                        hospitalDiv.className = 'flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200';
+                        hospitalDiv.className = 'flex items-center justify-between p-5 bg-white rounded-2xl border border-slate-100 shadow-sm hover:border-blue-200 transition-all group';
                         hospitalDiv.innerHTML = `
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
-                                    <i class="bi bi-hospital"></i>
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
+                                    <i class="bi bi-hospital text-xl"></i>
                                 </div>
                                 <div>
-                                    <div class="font-bold text-slate-900">${hospital.name}</div>
-                                    <div class="text-sm text-slate-500">Statut: ${hospital.is_active ? 'Actif' : 'Inactif'}</div>
+                                    <div class="font-black text-slate-900 tracking-tight">${hospital.name}</div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[10px] font-black uppercase tracking-widest ${hospital.is_active ? 'text-emerald-500' : 'text-red-500'}">
+                                            ${hospital.is_active ? 'Actif' : 'Inactif'}
+                                        </span>
+                                        <span class="text-slate-300">•</span>
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                            Plan: ${hospital.subscription_plan ? hospital.subscription_plan.name : 'Aucun'}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="text-right">
-                                <div class="text-sm text-slate-400">Plan: ${hospital.subscription ? hospital.subscription.plan.name : 'Aucun'}</div>
-                            </div>
+                            <button onclick="openHospitalDetails(${hospital.id})" 
+                                    class="px-4 py-2 bg-slate-50 text-slate-600 hover:bg-blue-600 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-slate-100 hover:border-blue-200">
+                                Voir plus
+                            </button>
                         `;
                         hospitalsContainer.appendChild(hospitalDiv);
                     });
                 } else {
-                    hospitalsContainer.innerHTML = '<div class="text-center text-slate-500 py-8">Aucun hôpital trouvé</div>';
+                    hospitalsContainer.innerHTML = '<div class="text-center text-slate-500 py-12 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-100 font-bold italic">Aucun hôpital actif à surveiller</div>';
                 }
 
                 // Load specialists financial data
@@ -1389,41 +1118,38 @@
 
                 if (data.specialists && data.specialists.length > 0) {
                     data.specialists.forEach(specialist => {
-                        const row = document.createElement('tr');
-                        row.className = 'hover:bg-purple-50/30 transition-colors';
-                        row.innerHTML = `
-                            <td class="px-8 py-6">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
-                                        <i class="bi bi-person"></i>
-                                    </div>
-                                    <div>
-                                        <div class="font-bold text-slate-900">${specialist.name}</div>
-                                        <div class="text-[11px] text-slate-400 font-bold uppercase tracking-tighter">ID: ${specialist.specialist_id}</div>
+                        const specialistDiv = document.createElement('div');
+                        specialistDiv.className = 'flex items-center justify-between p-5 bg-white rounded-2xl border border-slate-100 shadow-sm hover:border-purple-200 transition-all group';
+                        specialistDiv.innerHTML = `
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all shadow-sm">
+                                    <i class="bi bi-person-badge text-xl"></i>
+                                </div>
+                                <div>
+                                    <div class="font-black text-slate-900 tracking-tight">${specialist.name}</div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-lg font-black text-slate-900 tracking-tighter">${specialist.balance.toLocaleString()} <span class="text-[10px] text-slate-400">FCFA</span></span>
+                                        <span class="px-3 py-1 rounded-lg text-[9px] font-black tracking-widest ${specialist.status === 'ACTIF' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}">
+                                            ${specialist.status}
+                                        </span>
                                     </div>
                                 </div>
-                            </td>
-                            <td class="px-8 py-6">
-                                <div class="font-bold text-slate-900">${specialist.balance.toLocaleString()} FCFA</div>
-                            </td>
-                            <td class="px-8 py-6 text-center">
-                                <span class="px-3 py-1 rounded-full text-xs font-bold ${specialist.status === 'ACTIF' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                                    ${specialist.status}
-                                </span>
-                            </td>
-                            <td class="px-8 py-6 text-right text-lg">
-                                <button onclick="viewSpecialistHistory(${specialist.specialist_id})" class="text-slate-400 hover:text-purple-600 p-2 hover:bg-white rounded-xl transition-all">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <a href="{{ url('admin-system/specialists') }}/${specialist.id}/profile" 
+                                   class="px-4 py-2 bg-slate-50 text-slate-600 hover:bg-purple-600 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-slate-100 hover:border-purple-200">
+                                    Voir plus
+                                </a>
+                                <button onclick="viewSpecialistHistory(${specialist.specialist_id})" 
+                                        class="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-400 hover:text-purple-600 rounded-xl transition-all border border-slate-100" title="Historique">
                                     <i class="bi bi-clock-history"></i>
                                 </button>
-                                <button onclick="blockSpecialistWallet(${specialist.specialist_id})" class="text-red-400 hover:text-red-600 p-2 hover:bg-white rounded-xl transition-all ml-2">
-                                    <i class="bi bi-shield-x"></i>
-                                </button>
-                            </td>
+                            </div>
                         `;
-                        specialistsContainer.appendChild(row);
+                        specialistsContainer.appendChild(specialistDiv);
                     });
                 } else {
-                    specialistsContainer.innerHTML = '<tr><td colspan="4" class="px-8 py-12 text-center text-slate-400">Aucun spécialiste trouvé</td></tr>';
+                    specialistsContainer.innerHTML = '<div class="text-center text-slate-500 py-12 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-100 font-bold italic">Aucun spécialiste trouvé</div>';
                 }
 
                 // Load recent transactions
@@ -1735,120 +1461,7 @@
         }
 
 
-        // === INVOICES MANAGEMENT ===
 
-        function refreshInvoicesData() {
-            loadInvoiceStats();
-            loadInvoicesTable();
-        }
-
-
-        function loadInvoiceStats() {
-            fetch(`{{ url('admin-system/invoices') }}`, {
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                const statsContainer = document.getElementById('invoiceStats');
-                statsContainer.innerHTML = '';
-
-                const stats = [
-                    { label: 'Revenus Totaux', value: data.stats.total_revenue, icon: 'bi-cash-stack', color: 'green' },
-                    { label: 'Montant Payé', value: data.stats.total_paid, icon: 'bi-check-circle', color: 'blue' },
-                    { label: 'Montant Restant', value: data.stats.total_pending, icon: 'bi-clock-history', color: 'orange' },
-                    { label: 'Factures Payées', value: data.stats.paid_invoices, icon: 'bi-receipt', color: 'purple' }
-                ];
-
-                stats.forEach(stat => {
-                    const statDiv = document.createElement('div');
-                    statDiv.className = `card-stat bg-white rounded-3xl p-6 border border-slate-200/60 shadow-sm`;
-                    statDiv.innerHTML = `
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="bg-${stat.color}-50 p-3 rounded-2xl text-${stat.color}-600">
-                                <i class="bi ${stat.icon} text-xl"></i>
-                            </div>
-                        </div>
-                        <div class="text-4xl font-black text-slate-900 tracking-tighter">${stat.value.toLocaleString()}</div>
-                        <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">${stat.label}</div>
-                    `;
-                    statsContainer.appendChild(statDiv);
-                });
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Erreur lors du chargement des statistiques', 'error');
-            });
-        }
-
-        function loadInvoicesTable() {
-            fetch(`{{ url('admin-system/invoices') }}`, {
-                method: 'GET',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                const tableBody = document.getElementById('invoicesTable');
-                tableBody.innerHTML = '';
-
-                if (data.invoices && data.invoices.length > 0) {
-                    data.invoices.forEach(invoice => {
-                        const row = document.createElement('tr');
-                        row.className = 'hover:bg-blue-50/30 transition-colors';
-
-                        let statusClass = 'bg-gray-100 text-gray-800';
-                        if (invoice.status === 'PAYÉ') {
-                            statusClass = 'bg-green-100 text-green-800';
-                        } else if (invoice.status === 'PARTIELLEMENT PAYÉ') {
-                            statusClass = 'bg-yellow-100 text-yellow-800';
-                        } else {
-                            statusClass = 'bg-red-100 text-red-800';
-                        }
-
-                        row.innerHTML = `
-                            <td class="px-8 py-6">
-                                <div class="font-bold text-slate-900">${invoice.invoice_number}</div>
-                            </td>
-                            <td class="px-8 py-6">
-                                <div class="font-medium text-slate-900">${invoice.hospital_name}</div>
-                            </td>
-                            <td class="px-8 py-6">
-                                <div class="text-slate-600">${invoice.patient_name}</div>
-                            </td>
-                            <td class="px-8 py-6 text-right">
-                                <div class="font-bold text-slate-900">${invoice.total_amount.toLocaleString()} FCFA</div>
-                            </td>
-                            <td class="px-8 py-6 text-right">
-                                <div class="font-medium text-green-600">${invoice.paid_amount.toLocaleString()} FCFA</div>
-                            </td>
-                            <td class="px-8 py-6 text-right">
-                                <div class="font-medium text-orange-600">${invoice.remaining_amount.toLocaleString()} FCFA</div>
-                            </td>
-                            <td class="px-8 py-6 text-center">
-                                <span class="px-3 py-1 rounded-full text-xs font-bold ${statusClass}">
-                                    ${invoice.status}
-                                </span>
-                            </td>
-                            <td class="px-8 py-6">
-                                <div class="text-sm text-slate-500">${invoice.created_at}</div>
-                            </td>
-                        `;
-                        tableBody.appendChild(row);
-                    });
-                } else {
-                    tableBody.innerHTML = '<tr><td colspan="8" class="px-8 py-12 text-center text-slate-400">Aucune facture trouvée</td></tr>';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Erreur lors du chargement des factures', 'error');
-            });
-        }
 
         // Load data when tabs are activated
         document.addEventListener('DOMContentLoaded', function() {
@@ -1856,7 +1469,6 @@
             const subscriptionPlansTab = document.getElementById('btn-subscription-plans');
             const commissionRatesTab = document.getElementById('btn-commission-rates');
             const financialMonitoringTab = document.getElementById('btn-financial-monitoring');
-            const invoicesTab = document.getElementById('btn-invoices');
 
             if (subscriptionPlansTab) {
                 subscriptionPlansTab.addEventListener('click', function() {
@@ -1876,11 +1488,7 @@
                 });
             }
 
-            if (invoicesTab) {
-                invoicesTab.addEventListener('click', function() {
-                    setTimeout(refreshInvoicesData, 100);
-                });
-            }
+
 
             // Initialize features preview
             updateFeaturesPreview();

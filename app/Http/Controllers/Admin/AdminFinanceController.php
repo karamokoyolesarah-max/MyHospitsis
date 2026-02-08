@@ -92,6 +92,10 @@ class AdminFinanceController extends Controller
             ->take(15)
             ->get();
 
+        $latestTransactions = \App\Models\TransactionLog::latest()
+            ->take(10)
+            ->get();
+
         // Flux par Caisse (Mini cards)
         $caisseStats = [
              'accueil' => $this->getCaisseStats(null, $today),
@@ -112,6 +116,7 @@ class AdminFinanceController extends Controller
             'unpaidInvoices',
             'revenueByMethod', 
             'latestInvoices',
+            'latestTransactions',
             'caisseStats'
         ));
     }
@@ -548,12 +553,25 @@ private function calculateOperatorStats($today)
      */
     public function settleInsuranceInvoice(Invoice $invoice)
     {
+        $insurancePart = ($invoice->total * ($invoice->insurance_coverage_rate ?? 0)) / 100;
+
         $invoice->update([
             'insurance_settlement_status' => 'recovered',
+            'insurance_settled_at' => now(),
             'updated_at' => now()
         ]);
 
-        return redirect()->back()->with('success', 'La créance assurance pour la facture ' . $invoice->invoice_number . ' a été marquée comme recouvrée.');
+        // Integrate into Treasury (TransactionLog)
+        \App\Models\TransactionLog::create([
+            'source_type' => 'hospital',
+            'source_id' => $invoice->hospital_id ?? auth()->user()->hospital_id ?? 1,
+            'amount' => $insurancePart,
+            'fee_applied' => 0,
+            'net_income' => $insurancePart,
+            'description' => "Virement " . ($invoice->insurance_name ?? 'Assurance') . " - Facture #" . $invoice->invoice_number,
+        ]);
+
+        return redirect()->back()->with('success', 'La créance assurance pour la facture ' . $invoice->invoice_number . ' a été marquée comme recouvrée et ajoutée à la trésorerie.');
     }
 
     /**

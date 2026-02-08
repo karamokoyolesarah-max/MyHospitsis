@@ -369,6 +369,11 @@ Route::middleware(['auth', 'active_user'])->group(function () {
         Route::post('/admin/finance/settle-insurance/{invoice}', [App\Http\Controllers\Admin\AdminFinanceController::class, 'settleInsuranceInvoice'])->name('admin.finance.settle');
         Route::get('/admin/finance/bordereau', [App\Http\Controllers\Admin\AdminFinanceController::class, 'exportInsuranceBordereau'])->name('admin.finance.bordereau');
         Route::get('/admin/finance/audit', [App\Http\Controllers\Admin\AdminFinanceController::class, 'auditLogs'])->name('admin.finance.audit');
+
+        // INSURANCE MANAGEMENT ROUTES
+        Route::get('/admin/insurance', [App\Http\Controllers\Admin\InsuranceController::class, 'index'])->name('admin.insurance.index');
+        Route::post('/admin/insurance/test', [App\Http\Controllers\Admin\InsuranceController::class, 'testVerification'])->name('admin.insurance.test');
+        Route::post('/admin/insurance/connector', [App\Http\Controllers\Admin\InsuranceController::class, 'storeConnector'])->name('admin.insurance.store-connector');
     });
 
     // CASHIER CLOSING ROUTES
@@ -392,6 +397,12 @@ Route::prefix('medecin/interne')->name('doctor.')->middleware(['auth', 'active_u
 
 // ROUTES PUBLIQUES
 Route::get('/health', fn() => response()->json(['status' => 'ok']))->name('health.check');
+
+// SIMULATEUR D'ASSURANCE (MOCK API)
+Route::get('/api/test-insurance/{matricule}', function($matricule) {
+    $service = new \App\Services\Insurance\InsuranceService();
+    return response()->json($service->verify($matricule));
+})->name('api.insurance.verify');
 
 require __DIR__.'/nurse.php';
 require __DIR__.'/lab.php';
