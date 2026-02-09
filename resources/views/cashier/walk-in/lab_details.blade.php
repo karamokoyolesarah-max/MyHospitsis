@@ -1,4 +1,9 @@
 <div class="space-y-4">
+    @if($pendingInvoice && $pendingInvoice->insurance_name)
+    <input type="hidden" id="storedInsuranceName" value="{{ $pendingInvoice->insurance_name }}">
+    <input type="hidden" id="storedInsuranceCard" value="{{ $pendingInvoice->insurance_card_number }}">
+    <input type="hidden" id="storedInsuranceRate" value="{{ $pendingInvoice->insurance_coverage_rate }}">
+    @endif
     <div class="border-b border-gray-200 pb-3">
         <h4 class="font-bold text-gray-800 text-lg">{{ $labRequest->patient_name }}</h4>
         <div class="flex items-center text-sm text-gray-500 mt-1">
@@ -29,9 +34,23 @@
             <span>TVA (18%)</span>
             <span>{{ number_format($tax, 0, ',', ' ') }} FCFA</span>
         </div>
-        <div class="flex justify-between items-center text-xl font-bold text-blue-800 mt-2 bg-blue-50 p-3 rounded-lg border border-blue-100">
+        
+        <!-- Full Total (Default) -->
+        <div id="fullTotalRow" class="flex justify-between items-center text-xl font-bold text-blue-800 mt-2 bg-blue-50 p-3 rounded-lg border border-blue-100">
             <span>Total à Payer</span>
-            <span>{{ number_format($grandTotal, 0, ',', ' ') }} FCFA</span>
+            <span id="modalFullTotal" data-value="{{ $grandTotal }}">{{ number_format($grandTotal, 0, ',', ' ') }} FCFA</span>
+        </div>
+
+        <!-- Co-payment Breakdown (Hidden by default, shown by JS if insurance rate > 0) -->
+        <div id="coPaymentBreakdown" class="hidden mt-3 space-y-2">
+             <div class="flex justify-between items-center text-sm text-purple-600">
+                <span>Part Assurance (<span id="modalCoverageRate">0</span>%)</span>
+                <span id="modalInsurancePart" class="font-bold">0 FCFA</span>
+            </div>
+            <div class="flex justify-between items-center text-xl font-black text-red-600 bg-red-50 p-3 rounded-lg border border-red-100">
+                <span>Reste à Payer (Patient)</span>
+                <span id="modalPatientPart">0 FCFA</span>
+            </div>
         </div>
     </div>
 </div>

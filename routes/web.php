@@ -219,6 +219,7 @@ Route::middleware(['auth', 'active_user'])->group(function () {
     Route::put('/observations/{id}', [ObservationController::class, 'update'])->name('observations.update');
     Route::delete('/observations/{id}', [ObservationController::class, 'destroy'])->name('observations.destroy');
     Route::post('/observations/{id}/send', [ObservationController::class, 'sendToPatient'])->name('observations.send');
+    Route::post('/prescriptions/{id}/share', [PrescriptionController::class, 'share'])->name('prescriptions.share');
 
     // PATIENTS
     Route::patch('/patients/{patient}/archive', [PatientController::class, 'archive'])->name('patients.archive');
@@ -276,7 +277,7 @@ Route::middleware(['auth', 'active_user'])->group(function () {
     });
 
     // PRESCRIPTIONS & FACTURATION
-    Route::middleware('role:doctor,internal_doctor')->group(function () {
+    Route::middleware('role:doctor,internal_doctor,doctor_lab,doctor_radio')->group(function () {
         Route::resource('prescriptions', PrescriptionController::class);
         Route::post('/prescriptions/{prescription}/sign', [PrescriptionController::class, 'sign'])->name('prescriptions.sign');
         Route::patch('/prescriptions/{prescription}/sign', [PrescriptionController::class, 'sign'])->name('prescriptions.patch_sign');
@@ -300,7 +301,7 @@ Route::middleware(['auth', 'active_user'])->group(function () {
     Route::resource('prestations', PrestationController::class);
 
     // Lab Requests
-    Route::middleware('role:doctor,internal_doctor')->group(function () {
+    Route::middleware('role:doctor,internal_doctor,doctor_lab,doctor_radio')->group(function () {
         Route::post('/lab/request', [LabRequestController::class, 'store'])->name('lab.request.store');
     });
 

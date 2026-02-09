@@ -109,6 +109,7 @@ class RadiologyController extends Controller
             'biologist_id' => auth()->id(), // We might want to rename this column to 'validator_id' later, but for now we reuse it
             'validated_at' => now(),
             'completed_at' => now(),
+            'is_visible_to_patient' => true, // Auto-partage au portail patient
         ]);
 
         if ($labRequest->doctor) {
@@ -116,6 +117,27 @@ class RadiologyController extends Controller
         }
 
         return redirect()->back()->with('success', 'Examen validé et publié avec succès.');
+    }
+
+    /**
+     * Update result before validation
+     */
+    public function updateResult(Request $request, LabRequest $labRequest)
+    {
+        if ($labRequest->test_category !== 'imagerie') {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'result' => 'required|string',
+        ]);
+
+        $labRequest->update([
+            'result' => $validated['result'],
+            'is_visible_to_patient' => true,
+        ]);
+
+        return redirect()->back()->with('success', 'Résultat mis à jour avec succès.');
     }
 
     /**

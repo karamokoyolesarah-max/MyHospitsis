@@ -917,10 +917,9 @@
                 form.action = actionUrl;
                 
                 // Auto-fill insurance details if present
-                // Auto-fill insurance details if present
                 const storedName = document.getElementById('storedInsuranceName');
                 if (storedName) {
-                    // Activate Cash by default (since insurance is already "paid" or recorded)
+                    // Force select "Espèces" (Cash) as default for co-payment
                     const cashRadio = document.querySelector('input[name="payment_method"][value="Espèces"]');
                     const assuranceRadio = document.querySelector('input[name="payment_method"][value="Assurance"]');
                     
@@ -928,14 +927,18 @@
                         cashRadio.checked = true;
                         cashRadio.dispatchEvent(new Event('change'));
                         
-                        // Disable Assurance to prevent re-selection
+                        // Disable Assurance to prevent re-entering insurance details
                         if (assuranceRadio) {
-                             assuranceRadio.parentElement.style.opacity = '0.5';
-                             assuranceRadio.parentElement.style.pointerEvents = 'none';
+                             const label = assuranceRadio.closest('label');
+                             if (label) {
+                                 label.style.opacity = '0.5';
+                                 label.style.pointerEvents = 'none';
+                                 label.title = "Assurance déjà enregistrée";
+                             }
                              assuranceRadio.disabled = true;
                         }
 
-                        // Fill fields (even if hidden)
+                        // Auto-fill hidden source fields for calculation
                         const nameInput = document.getElementById('paymentInsuranceName');
                         const cardInput = document.getElementById('paymentInsuranceCard');
                         const rateInput = document.getElementById('paymentInsuranceRate');
@@ -944,7 +947,7 @@
                         if(cardInput) cardInput.value = document.getElementById('storedInsuranceCard').value;
                         if(rateInput) rateInput.value = document.getElementById('storedInsuranceRate').value;
                         
-                        // Trigger calculation immediately
+                        // Trigger calculation to show co-payment breakdown
                         calculateModalCoPayment();
                     }
                 }

@@ -339,61 +339,93 @@ class CashierController extends Controller
                 $finalOperator = $target->payment_operator ?? null;
             }
 
-            // 2. Créer la facture
-            $invoice = Invoice::create([
-                'hospital_id' => $hospitalId,
-                'service_id' => $serviceId,
-                'invoice_number' => $invoicePrefix . '-' . now()->format('ymdHi') . '-' . str_pad($invoiceIdSuffix, 4, '0', STR_PAD_LEFT),
-                'patient_id' => $patientId,
-                'appointment_id' => $appointment ? $appointment->id : null,
-                'admission_id' => $admission ? $admission->id : null,
-                'walk_in_consultation_id' => $walkInId,
-                'lab_request_id' => $labRequestId,
-                'invoice_date' => now(),
-                'subtotal' => $subtotal,
-                'tax' => $tax,
-                'total' => $total,
-                'status' => 'paid',
-                'payment_method' => $paymentMethod,
-                'payment_operator' => $finalOperator,
-                'insurance_name' => $insuranceName,
-                'insurance_card_number' => $insuranceCard,
-                'insurance_coverage_rate' => $insuranceRate,
-                'insurance_settlement_status' => ($insuranceRate > 0) ? 'pending' : null,
-                'paid_at' => now(),
-                'cashier_id' => $user->id,
-            ]);
+            // 2. Déterminer le statut initial (Gestion de l'assurance partielle)
+            $isPartialInsurance = ($paymentMethod === 'Assurance' && $insuranceRate > 0 && $insuranceRate < 100);
+            $newStatus = $isPartialInsurance ? 'pending' : 'paid';
+            $paidAt = $isPartialInsurance ? null : now();
 
-            // 3. Créer les items
-            if ($servicePrice > 0) {
-                InvoiceItem::create([
-                    'hospital_id' => $hospitalId,
-                    'invoice_id' => $invoice->id,
-                    'description' => "Consultation : " . ($appointment->service->name ?? 'Service'),
-                    'quantity' => 1,
-                    'unit_price' => $servicePrice,
-                    'total' => $servicePrice,
-                ]);
-            }
-
-            foreach ($prestations as $prestation) {
-                InvoiceItem::create([
-                    'hospital_id' => $hospitalId,
-                    'invoice_id' => $invoice->id,
-                    'description' => $prestation->name,
-                    'quantity' => $prestation->pivot->quantity,
-                    'unit_price' => $prestation->pivot->unit_price,
-                    'total' => $prestation->pivot->total,
-                ]);
-            }
-
-            // 4. Marquer la cible comme payée
+            // 3. Rechercher une facture en attente existante pour ce target (Éviter les doublons lors du paiement du reliquat)
+            $existingInvoiceQuery = Invoice::where('hospital_id', $hospitalId)->where('status', 'pending');
             if ($type === 'appointment') {
-                $target->update(['status' => 'paid']);
+                $existingInvoiceQuery->where('appointment_id', $target->id);
             } elseif ($type === 'walk-in') {
-                $target->update(['status' => 'paid']);
-            } else { // Lab
-                $target->update(['is_paid' => true]);
+                $existingInvoiceQuery->where('walk_in_consultation_id', $target->id);
+            } elseif ($type === 'lab') {
+                $existingInvoiceQuery->where('lab_request_id', $target->id);
+            }
+            $invoice = $existingInvoiceQuery->first();
+
+            if ($invoice) {
+                // Mise à jour de la facture existante si on paye le ticket modérateur par exemple
+                $invoice->update([
+                    'payment_method' => $paymentMethod,
+                    'payment_operator' => $finalOperator,
+                    'insurance_name' => $insuranceName ?? $invoice->insurance_name,
+                    'insurance_card_number' => $insuranceCard ?? $invoice->insurance_card_number,
+                    'insurance_coverage_rate' => $insuranceRate ?? $invoice->insurance_coverage_rate,
+                    'status' => $newStatus,
+                    'paid_at' => $paidAt,
+                    'cashier_id' => $user->id,
+                ]);
+            } else {
+                // Créer une nouvelle facture
+                $invoice = Invoice::create([
+                    'hospital_id' => $hospitalId,
+                    'service_id' => $serviceId,
+                    'invoice_number' => $invoicePrefix . '-' . now()->format('ymdHi') . '-' . str_pad($invoiceIdSuffix, 4, '0', STR_PAD_LEFT),
+                    'patient_id' => $patientId,
+                    'appointment_id' => $appointment ? $appointment->id : null,
+                    'admission_id' => $admission ? $admission->id : null,
+                    'walk_in_consultation_id' => $walkInId,
+                    'lab_request_id' => $labRequestId,
+                    'invoice_date' => now(),
+                    'subtotal' => $subtotal,
+                    'tax' => $tax,
+                    'total' => $total,
+                    'status' => $newStatus,
+                    'payment_method' => $paymentMethod,
+                    'payment_operator' => $finalOperator,
+                    'insurance_name' => $insuranceName,
+                    'insurance_card_number' => $insuranceCard,
+                    'insurance_coverage_rate' => $insuranceRate,
+                    'insurance_settlement_status' => ($insuranceRate > 0) ? 'pending' : null,
+                    'paid_at' => $paidAt,
+                    'cashier_id' => $user->id,
+                ]);
+
+                // 4. Créer les items (Seulement si nouvelle facture)
+                if ($servicePrice > 0) {
+                    InvoiceItem::create([
+                        'hospital_id' => $hospitalId,
+                        'invoice_id' => $invoice->id,
+                        'description' => "Consultation : " . ($appointment->service->name ?? 'Service'),
+                        'quantity' => 1,
+                        'unit_price' => $servicePrice,
+                        'total' => $servicePrice,
+                    ]);
+                }
+
+                foreach ($prestations as $prestation) {
+                    InvoiceItem::create([
+                        'hospital_id' => $hospitalId,
+                        'invoice_id' => $invoice->id,
+                        'description' => $prestation->name,
+                        'quantity' => $prestation->pivot->quantity,
+                        'unit_price' => $prestation->pivot->unit_price,
+                        'total' => $prestation->pivot->total,
+                    ]);
+                }
+            }
+
+            // 5. Marquer la cible comme payée UNIQUEMENT si la facture est "paid"
+            if ($invoice->status === 'paid') {
+                if ($type === 'appointment') {
+                    $target->update(['status' => 'paid']);
+                } elseif ($type === 'walk-in') {
+                    $target->update(['status' => 'paid']);
+                } else { // Lab
+                    $target->update(['is_paid' => true]);
+                }
             }
 
             DB::commit();
@@ -768,7 +800,12 @@ class CashierController extends Controller
         $tax = $total * 0.18;
         $grandTotal = $total + $tax;
 
-        return view('cashier.walk-in.details', compact('consultation', 'total', 'tax', 'grandTotal'));
+        // Récupérer la facture en attente si elle existe pour l'assurance
+        $pendingInvoice = Invoice::where('walk_in_consultation_id', $consultation->id)
+                                ->where('status', 'pending')
+                                ->first();
+
+        return view('cashier.walk-in.details', compact('consultation', 'total', 'tax', 'grandTotal', 'pendingInvoice'));
     }
 
     /**
@@ -783,13 +820,17 @@ class CashierController extends Controller
 
         $labRequest->load(['doctor', 'service', 'patientVital']);
         
-        // Price lookup
         $prestation = Prestation::where('name', $labRequest->test_name)->first();
         $total = $prestation ? $prestation->price : 5000;
         $tax = $total * 0.18;
         $grandTotal = $total + $tax;
 
-        return view('cashier.walk-in.lab_details', compact('labRequest', 'total', 'tax', 'grandTotal'));
+        // Récupérer la facture en attente si elle existe pour l'assurance
+        $pendingInvoice = Invoice::where('lab_request_id', $labRequest->id)
+                                ->where('status', 'pending')
+                                ->first();
+
+        return view('cashier.walk-in.lab_details', compact('labRequest', 'total', 'tax', 'grandTotal', 'pendingInvoice'));
     }
 
     /**
@@ -806,8 +847,13 @@ class CashierController extends Controller
             if ($request->payment_method === 'Mobile Money') {
                 return $this->initiateMobileMoneyPayment($request, $consultation, 'walk-in');
             }
-            $this->executePayment($consultation, $request->payment_method ?? 'Espèces', 'walk-in', $request->mobile_operator);
-            return back()->with('success', 'Paiement validé, facture générée et dossier envoyé à l\'infirmier !');
+            $invoice = $this->executePayment($consultation, $request->payment_method ?? 'Espèces', 'walk-in', $request->mobile_operator);
+            
+            $message = ($invoice->status === 'pending') 
+                ? 'Assurance enregistrée. Veuillez maintenant encaisser le ticket modérateur du patient.'
+                : 'Paiement validé, facture générée et dossier envoyé à l\'infirmier !';
+
+            return back()->with('success', $message);
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Échec de la transaction : ' . $e->getMessage()]);
         }

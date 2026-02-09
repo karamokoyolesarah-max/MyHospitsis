@@ -323,6 +323,28 @@
 
         <div class="flex-1 flex flex-col overflow-hidden">
             <main class="flex-1 overflow-y-auto bg-gray-50 custom-scrollbar">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+                    @if(session('success'))
+                        <div class="mb-4 p-4 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center gap-3 text-emerald-700 animate-fade-in shadow-sm">
+                            <i class="fas fa-check-circle text-lg"></i>
+                            <span class="text-xs font-black uppercase tracking-widest">{{ session('success') }}</span>
+                        </div>
+                    @endif
+
+                    @if($errors->any())
+                        <div class="mb-4 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-700 animate-fade-in shadow-sm">
+                            <div class="flex items-center gap-3 mb-2">
+                                <i class="fas fa-exclamation-circle text-lg"></i>
+                                <span class="text-xs font-black uppercase tracking-widest text-red-800">Une erreur est survenue</span>
+                            </div>
+                            <ul class="list-disc list-inside text-[10px] font-bold uppercase tracking-tight opacity-80">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                </div>
                 @yield('content')
             </main>
         </div>

@@ -19,6 +19,7 @@ Route::middleware(['auth', 'active_user', 'role:doctor_lab'])->group(function ()
     Route::get('/lab/biologist/validation', [LabRequestController::class, 'validationList'])->name('lab.biologist.validation');
     Route::get('/lab/biologist/stats', [LabRequestController::class, 'biologistStats'])->name('lab.biologist.stats');
     Route::post('/lab/requests/{lab_request}/validate', [LabRequestController::class, 'validateResult'])->name('lab.requests.validate');
+    Route::post('/lab/requests/{lab_request}/update-result', [LabRequestController::class, 'updateResult'])->name('lab.requests.update_result');
 });
 
 Route::middleware(['auth', 'active_user', 'role:doctor_radio'])->group(function () {
@@ -26,6 +27,7 @@ Route::middleware(['auth', 'active_user', 'role:doctor_radio'])->group(function 
     Route::get('/lab/radiologist/validation', [\App\Http\Controllers\RadiologyController::class, 'validationList'])->name('lab.radiologist.validation');
     Route::get('/lab/radiologist/stats', [\App\Http\Controllers\RadiologyController::class, 'stats'])->name('lab.radiologist.stats');
     Route::post('/lab/radiology/{lab_request}/validate', [\App\Http\Controllers\RadiologyController::class, 'validateResult'])->name('lab.radiology.validate');
+    Route::post('/lab/radiology/{lab_request}/update-result', [\App\Http\Controllers\RadiologyController::class, 'updateResult'])->name('lab.radiology.update_result');
 });
 
 Route::middleware(['auth', 'active_user', 'role:radio_technician'])->group(function () {

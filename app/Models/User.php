@@ -66,13 +66,10 @@ class User extends Authenticatable
         return $this->role === 'medecin_externe'; // Correction probable du rôle pour medecin_externe
     }
 
-    // Mise à jour : Vérifie si l'utilisateur est un DOCTEUR (Interne ou Externe)
+    // Mise à jour : Vérifie si l'utilisateur est un DOCTEUR (Interne, Externe, Labo ou Radio)
     public function isDoctor(): bool
     {
-        // On exclut le doctor_lab ici car il a son propre dashboard et sidebar
-        if ($this->role === 'doctor_lab') return false;
-        
-        return $this->role === 'doctor' || $this->role === 'internal_doctor' || $this->role === 'medecin_externe';
+        return in_array($this->role, ['doctor', 'internal_doctor', 'medecin_externe', 'doctor_lab', 'doctor_radio']);
     }
     
     public function isAdministrative(): bool

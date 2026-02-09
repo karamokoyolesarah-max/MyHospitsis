@@ -91,6 +91,7 @@
                             </div>
                         </div>
                     </div>
+                </div>
 
                 <input type="hidden" name="amount_paid" id="hiddenAmount">
 

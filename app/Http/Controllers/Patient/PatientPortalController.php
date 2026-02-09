@@ -409,52 +409,60 @@ class PatientPortalController extends Controller
     {
         $patient = Auth::guard('patients')->user();
         
+        // --- 0. RÉCUPÉRER LES PÉRIODES D'ADMISSION ---
+        $admissions = \App\Models\Admission::where('patient_id', $patient->id)->get();
+
+        // Helper pour déterminer si un document a été créé DURANT (ou juste avant) une admission
+        $getAdmissionStatus = function($date) use ($admissions) {
+            foreach ($admissions as $adm) {
+                // On inclut 12h avant l'admission pour capturer les examens faits aux urgences/accueil avant de monter en chambre
+                $start = $adm->admission_date->copy()->subHours(12);
+                $end = $adm->discharge_date ? $adm->discharge_date->copy()->addHours(6) : now()->addDay(); 
+                
+                if ($date->between($start, $end)) {
+                    return 'Admission';
+                }
+            }
+            return 'Non Admission';
+        };
+
         // --- 1. AGGREGATION DES DOCUMENTS ---
         $allDocs = collect();
 
         // A. Factures
-        // Ajout eager loading pour labRequest pour mapper correctement le service
         $invoices = \App\Models\Invoice::where('patient_id', $patient->id)
             ->with(['appointment.service', 'admission.room.service', 'labRequest.doctor.service'])
             ->latest()
             ->get();
 
         foreach($invoices as $inv) {
-            // Déterminer le service
-            // Priorité: Admission > Appointment > LabRequest (Prescripteur) > Service direct
             $serviceName = 'Administration';
             if ($inv->admission && $inv->admission->room && $inv->admission->room->service) {
                 $serviceName = $inv->admission->room->service->name;
             } elseif ($inv->appointment && $inv->appointment->service) {
                 $serviceName = $inv->appointment->service->name;
             } elseif ($inv->labRequest && $inv->labRequest->doctor && $inv->labRequest->doctor->service) {
-                // Si c'est une facture labo, on la classe dans le service du prescripteur (ex: Pédiatrie)
                 $serviceName = $inv->labRequest->doctor->service->name;
             } elseif ($inv->service) {
                 $serviceName = $inv->service->name;
             }
 
-            // Déterminer le contexte (Hôpital vs Maison/Ambulatoire)
-            $context = 'Hôpital'; // Par défaut si lié à une structure
+            $context = 'Hôpital';
             if ($inv->appointment && $inv->appointment->consultation_type === 'home') {
                 $context = 'Maison';
             }
 
-            // Déterminer le statut (Admission vs Non Admission)
-            $status = 'Non Admission';
-            if ($inv->admission) {
-                $status = 'Admission';
-            }
+            // Statut Admission/Non Admission
+            $status = $inv->admission_id ? 'Admission' : $getAdmissionStatus($inv->created_at);
 
             $allDocs->push([
                 'id' => 'inv-'.$inv->id,
                 'type' => 'Facture',
-                'title' => 'Facture #' . $inv->invoice_number . ($inv->lab_request_id ? ' (Labo)' : ''),
+                'title' => 'Facture #' . $inv->invoice_number,
                 'date' => $inv->created_at,
                 'service' => $serviceName,
                 'context' => $context,
                 'status' => $status,
-                'file_path' => null, // TODO: route de téléchargement facture
                 'download_route' => route('patient.invoices.pdf', $inv->id),
                 'icon' => 'fas fa-file-invoice-dollar',
                 'color' => 'text-gray-600'
@@ -463,14 +471,14 @@ class PatientPortalController extends Controller
 
         // B. Ordonnances (Table dédiée)
         $prescriptions = \App\Models\Prescription::where('patient_id', $patient->id)
-            ->with(['doctor.service']) // Supposons que doctor a un service
+            ->where('is_visible_to_patient', true)
+            ->with(['doctor.service'])
             ->latest()
             ->get();
         
         foreach($prescriptions as $pres) {
             $serviceName = 'Consultation Générale';
             if ($pres->doctor && $pres->doctor->service_id) {
-                // On charge le service manuellement si pas eager loaded ou relation user->service
                 $srv = \App\Models\Service::find($pres->doctor->service_id);
                 if ($srv) $serviceName = $srv->name;
             }
@@ -481,9 +489,8 @@ class PatientPortalController extends Controller
                 'title' => 'Ordonnance du ' . $pres->created_at->format('d/m/Y'),
                 'date' => $pres->created_at,
                 'service' => $serviceName,
-                'context' => 'Hôpital', // Par défaut clinique
-                'status' => 'Non Admission', // Souvent ambulatoire, sauf si lié à une admission (non tracké ici)
-                'file_path' => null,
+                'context' => 'Hôpital',
+                'status' => $getAdmissionStatus($pres->created_at),
                 'download_route' => route('patient.prescriptions.download', $pres->id),
                 'icon' => 'fas fa-prescription-bottle-alt',
                 'color' => 'text-blue-600'
@@ -494,13 +501,14 @@ class PatientPortalController extends Controller
         $vitalPrescriptions = $patient->vitals()
             ->whereNotNull('ordonnance')
             ->where('ordonnance', '!=', '')
+            ->where('is_visible_to_patient', true)
             ->with(['doctor', 'service'])
             ->get();
 
         foreach($vitalPrescriptions as $vital) {
             $serviceName = $vital->service ? $vital->service->name : ($vital->doctor && $vital->doctor->service_id ? \App\Models\Service::find($vital->doctor->service_id)->name : 'Consultation Générale');
             
-            $status = $vital->related_admission ? 'Admission' : 'Non Admission';
+            $status = $vital->related_admission || $getAdmissionStatus($vital->created_at) === 'Admission' ? 'Admission' : 'Non Admission';
 
             $allDocs->push([
                 'id' => 'vital-pres-'.$vital->id,
@@ -510,51 +518,43 @@ class PatientPortalController extends Controller
                 'service' => $serviceName,
                 'context' => 'Hôpital',
                 'status' => $status,
-                'file_path' => null, // Généré à la volée
-                'download_route' => route('patient.prescriptions.download', $vital->id), // Vérifier si cette route gère les vitals ID
+                'download_route' => route('patient.prescriptions.download', $vital->id),
                 'icon' => 'fas fa-file-medical',
                 'color' => 'text-blue-600'
             ]);
         }
 
-        // E. TESTS / RESULTATS LABO (NOUVEAU)
-        // Correction: LabRequest utilise patient_ipu, pas patient_id
-        // MODIFICATION: On récupère TOUS les tests, même sans fichier (En attente)
+        // D. Résultats Labo
         $labRequests = \App\Models\LabRequest::where('patient_ipu', $patient->ipu)
-            // ->whereNotNull('result_file') // RETIRÉ pour voir aussi les tests en cours
+            ->where('is_visible_to_patient', true)
             ->with(['doctor.service']) 
             ->latest()
             ->get();
 
         foreach ($labRequests as $req) {
-            // Service du prescripteur
-            $serviceName = 'Laboratoire'; // Fallback
+            $serviceName = 'Laboratoire';
             if ($req->doctor && $req->doctor->service) {
-                // On classe le résultat dans le service du médecin demandeur (ex: Pédiatrie)
                 $serviceName = $req->doctor->service->name;
             }
 
             $hasFile = !empty($req->result_file);
-            $hasTextResult = !empty($req->result);
-            $isAvailable = $hasFile || $hasTextResult;
+            $isAvailable = $hasFile || !empty($req->result);
 
             $allDocs->push([
                 'id' => 'lab-'.$req->id,
                 'type' => 'Test',
-                'title' => 'Résultat: ' . $req->test_name . ($isAvailable ? '' : ' (En cours)'),
+                'title' => 'Résultat: ' . $req->test_name,
                 'date' => $req->created_at,
                 'service' => $serviceName,
                 'context' => 'Hôpital',
-                'status' => 'Non Admission', 
-                'file_path' => $req->result_file,
-                'result_text' => $req->result, // Pour affichage direct
+                'status' => $getAdmissionStatus($req->created_at),
                 'download_route' => $hasFile ? asset('storage/'.$req->result_file) : null,
                 'icon' => 'fas fa-flask',
                 'color' => $isAvailable ? 'text-purple-600' : 'text-gray-400'
             ]);
         }
 
-        // D. Documents Uploadés (Table documents)
+        // E. Documents Uploadés
         $uploadedDocs = $patient->documents()
              ->where('is_visible_to_patient', true)
              ->latest()
@@ -566,11 +566,9 @@ class PatientPortalController extends Controller
                 'type' => 'Autre Document',
                 'title' => $doc->title,
                 'date' => $doc->created_at,
-                'service' => 'Divers', // Difficile de savoir sans relation
+                'service' => 'Divers',
                 'context' => 'Hôpital',
-                'status' => 'Non Admission',
-                'file_path' => $doc->file_path,
-                'download_route' => null,//route('patient.download-document', $doc->id), // Si existe
+                'status' => $getAdmissionStatus($doc->created_at),
                 'icon' => 'fas fa-file-alt',
                 'color' => 'text-gray-500'
             ]);

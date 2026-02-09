@@ -43,6 +43,7 @@ class PrescriptionController extends Controller
             'status'          => 'active',
             'allergy_checked' => false,
             'category'        => $validated['category'] ?? 'pharmacy',
+            'is_visible_to_patient' => ($validated['category'] ?? 'pharmacy') === 'pharmacy',
         ]);
 
         return redirect()->route('patients.show', $patient->id)
@@ -82,5 +83,16 @@ class PrescriptionController extends Controller
     {
         $prescription->delete();
         return back()->with('success', 'Prescription supprimée.');
+    }
+
+    public function share($id)
+    {
+        $prescription = Prescription::findOrFail($id);
+        $prescription->update(['is_visible_to_patient' => true]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'L\'ordonnance a été transmise au portail patient.'
+        ]);
     }
 }

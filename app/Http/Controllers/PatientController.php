@@ -113,9 +113,9 @@ class PatientController extends Controller
         // Déterminer la date minimale des PatientVitals actifs (pour filtrer les prescriptions et analyses)
         $minActiveDate = $patientVitals->min('created_at');
         
-        // Si aucun PatientVital actif, utiliser une date très récente pour tout masquer
+        // Si aucun PatientVital actif, utiliser le début de journée pour voir ce qui a été fait aujourd'hui
         if (!$minActiveDate) {
-            $minActiveDate = now();
+            $minActiveDate = today();
         }
 
         // Charger les observations cliniques (la table n'a pas de colonne status)
@@ -318,9 +318,17 @@ class PatientController extends Controller
         // 6. Marquer les PatientVitals comme archivés
         $activeVitals->each(fn($v) => $v->update(['status' => 'archived']));
         
+        // 7. MISE À JOUR DU STATUT DU RENDEZ-VOUS
+        // On cherche le RDV actif le plus récent pour ce patient (aujourd'hui ou hier)
+        \App\Models\Appointment::where('patient_id', $patient->id)
+            ->whereIn('status', ['confirmed', 'paid', 'prepared', 'scheduled'])
+            ->whereDate('appointment_datetime', '>=', now()->subDays(1)->toDateString())
+            ->whereDate('appointment_datetime', '<=', now()->toDateString())
+            ->update(['status' => 'completed']);
+
         // Journalisation
         AuditLog::log('archive', 'Patient', $patient->id, [
-            'description' => 'Archivage du dossier patient et partage automatique avec le portail patient',
+            'description' => 'Archivage du dossier patient, partage automatique et clôture du rendez-vous',
             'vitals_archived' => $activeVitals->count(),
         ]);
 

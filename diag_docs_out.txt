@@ -1,0 +1,11 @@
+--- ADMISSIONS ---
+ID: 7 | Start: 2026-02-09 11:45:52 | End: 2026-02-09 12:16:42
+
+--- INVOICES ---
+ID: 47 | Num: INV-2602091009-0026 | Created: 2026-02-09 10:09:01 | Admin ID: NULL
+ID: 48 | Num: LAB-2602091016-0013 | Created: 2026-02-09 10:16:51 | Admin ID: NULL
+ID: 49 | Num: LAB-2602091021-0012 | Created: 2026-02-09 10:21:12 | Admin ID: NULL
+
+--- LAB REQUESTS ---
+ID: 12 | Test: NFS | Created: 2026-02-09 10:13:35 | Visible: No
+ID: 13 | Test: Radio Thorax | Created: 2026-02-09 10:13:35 | Visible: No

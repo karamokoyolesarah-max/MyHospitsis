@@ -1,8 +1,13 @@
 <div class="space-y-4">
-    @if($consultation->insurance_name)
-    <input type="hidden" id="storedInsuranceName" value="{{ $consultation->insurance_name }}">
-    <input type="hidden" id="storedInsuranceCard" value="{{ $consultation->insurance_card_number }}">
-    <input type="hidden" id="storedInsuranceRate" value="{{ $consultation->insurance_coverage_rate }}">
+    @php
+        $insName = $consultation->insurance_name ?? ($pendingInvoice->insurance_name ?? null);
+        $insCard = $consultation->insurance_card_number ?? ($pendingInvoice->insurance_card_number ?? null);
+        $insRate = $consultation->insurance_coverage_rate ?? ($pendingInvoice->insurance_coverage_rate ?? 0);
+    @endphp
+    @if($insName)
+    <input type="hidden" id="storedInsuranceName" value="{{ $insName }}">
+    <input type="hidden" id="storedInsuranceCard" value="{{ $insCard }}">
+    <input type="hidden" id="storedInsuranceRate" value="{{ $insRate }}">
     @endif
     <div class="border-b border-gray-200 pb-3">
         <h4 class="font-bold text-gray-800 text-lg">{{ $consultation->patient->name }}</h4>

@@ -78,7 +78,7 @@ class ObservationController extends Controller
     public function sendToPatient($id)
     {
         $fiche = ClinicalObservation::findOrFail($id);
-        $fiche->update(['is_published' => true]);
+        $fiche->update(['is_visible_to_patient' => true]);
 
         return response()->json([
             'status' => 'success',

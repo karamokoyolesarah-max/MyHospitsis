@@ -1,0 +1,11 @@
+[
+    {
+        "id": 7,
+        "patient_id": 2,
+        "created_at": "2026-02-09 12:11:33",
+        "medication": "bois panadol",
+        "is_visible_to_patient": 0,
+        "category": "pharmacy",
+        "is_signed": true
+    }
+]

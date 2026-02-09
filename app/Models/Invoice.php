@@ -13,7 +13,7 @@ class Invoice extends Model
     protected $fillable = [
        'hospital_id', 'service_id', 'invoice_number', 'patient_id', 'appointment_id',
        'admission_id', 'lab_request_id', 'walk_in_consultation_id',
-       'invoice_date', 'due_date', 'subtotal', 'tax',
+       'invoice_date', 'due_date', 'subtotal', 'tax', 'total',
        'status', 'paid_at', 'payment_method', 'payment_operator', 'notes',
        'insurance_name', 'insurance_card_number', 'insurance_coverage_rate',
        'insurance_settlement_status', // Added for recovery tracking

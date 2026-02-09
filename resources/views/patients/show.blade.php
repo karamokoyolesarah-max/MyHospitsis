@@ -617,8 +617,37 @@
     }
 
     function confirmSend(id) { 
-        Swal.fire({ title: 'Partager ?', text: "Envoyer à l'infirmerie ?", icon: 'question', showCancelButton: true, confirmButtonText: 'Oui', confirmButtonColor: '#1cc88a' })
-        .then((r) => { if (r.isConfirmed) Swal.fire('Envoyé !', '', 'success'); }); 
+        Swal.fire({ 
+            title: 'Partager ?', 
+            text: "Envoyer cet examen au portail patient ?", 
+            icon: 'question', 
+            showCancelButton: true, 
+            confirmButtonText: 'Oui, partager', 
+            confirmButtonColor: '#1cc88a' 
+        }).then((result) => { 
+            if (result.isConfirmed) {
+                fetch(`/observations/${id}/send`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        Swal.fire('Transmis !', data.message, 'success');
+                    } else {
+                        Swal.fire('Erreur', 'Impossible de partager cet examen.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire('Erreur', 'Une erreur est survenue lors de l\'envoi.', 'error');
+                });
+            } 
+        }); 
     }
 
     function editPrescription(p) {
@@ -630,8 +659,37 @@
     }
 
     function confirmSendPrescription(id) {
-        Swal.fire({ title: 'Envoyer ?', text: "Transmettre au patient ?", icon: 'info', showCancelButton: true, confirmButtonText: 'Oui', confirmButtonColor: '#1cc88a' })
-        .then((r) => { if (r.isConfirmed) Swal.fire('Transmis !', '', 'success'); });
+        Swal.fire({ 
+            title: 'Envoyer ?', 
+            text: "Transmettre cette ordonnance au patient ?", 
+            icon: 'info', 
+            showCancelButton: true, 
+            confirmButtonText: 'Oui, envoyer', 
+            confirmButtonColor: '#1cc88a' 
+        }).then((result) => { 
+            if (result.isConfirmed) {
+                fetch(`/prescriptions/${id}/share`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        Swal.fire('Transmis !', data.message, 'success');
+                    } else {
+                        Swal.fire('Erreur', 'Impossible de partager cette ordonnance.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire('Erreur', 'Une erreur est survenue lors de l\'envoi.', 'error');
+                });
+            } 
+        });
     }
 
     function showLabResult(r) {

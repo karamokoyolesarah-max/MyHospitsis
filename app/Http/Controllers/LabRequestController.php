@@ -248,6 +248,7 @@ class LabRequestController extends Controller
             'biologist_id' => auth()->id(),
             'validated_at' => now(),
             'completed_at' => now(), // On considère terminé au moment de la validation
+            'is_visible_to_patient' => true, // Auto-partage au portail patient
         ]);
 
         // Notification au médecin prescripteur seulement après validation
@@ -256,6 +257,23 @@ class LabRequestController extends Controller
         }
 
         return redirect()->back()->with('success', 'Résultat validé et publié avec succès.');
+    }
+
+    /**
+     * Update result before validation
+     */
+    public function updateResult(Request $request, LabRequest $labRequest)
+    {
+        $validated = $request->validate([
+            'result' => 'required|string',
+        ]);
+
+        $labRequest->update([
+            'result' => $validated['result'],
+            'is_visible_to_patient' => true,
+        ]);
+
+        return redirect()->back()->with('success', 'Résultat mis à jour avec succès.');
     }
 
     /**

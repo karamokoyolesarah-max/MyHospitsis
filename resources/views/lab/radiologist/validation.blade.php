@@ -52,8 +52,8 @@
                                     </div>
                                 </div>
 
-                                <div class="flex flex-col gap-3 min-w-[200px]">
-                                    <form action="{{ route('lab.requests.validate', $result->id) }}" method="POST">
+                                 <div class="flex flex-col gap-3 min-w-[200px]">
+                                    <form action="{{ route('lab.radiology.validate', $result->id) }}" method="POST">
                                         @csrf
                                         <button type="submit" class="w-full px-6 py-4 bg-teal-600 hover:bg-teal-700 text-white font-black rounded-xl shadow-lg shadow-teal-500/30 transition-all flex items-center justify-center gap-2">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -61,7 +61,7 @@
                                         </button>
                                     </form>
                                     
-                                    <button onclick="openEditResultModal({{ $result->id }})" class="w-full px-4 py-3 bg-white hover:bg-gray-50 text-gray-700 font-bold rounded-xl border border-gray-200 transition-all flex items-center justify-center gap-2">
+                                    <button onclick="openEditResultModal({{ $result->id }}, '{{ addslashes($result->result) }}')" class="w-full px-4 py-3 bg-white hover:bg-gray-50 text-gray-700 font-bold rounded-xl border border-gray-200 transition-all flex items-center justify-center gap-2">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                         Ajuster le résultat
                                     </button>
@@ -74,4 +74,52 @@
         @endif
     </div>
 </div>
+
+{{-- Modal d'ajustement du résultat --}}
+<dialog id="editResultModal" class="modal rounded-2xl shadow-2xl p-0 w-full max-w-lg border-none">
+    <div class="p-8">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-black text-gray-900">✏️ Ajuster le résultat</h3>
+            <button onclick="closeEditResultModal()" class="text-gray-400 hover:text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        
+        <form id="editResultForm" method="POST">
+            @csrf
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Compte-rendu / Résultat</label>
+                    <textarea name="result" id="modalResultTextarea" rows="8" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-teal-500 font-medium text-gray-900" required></textarea>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-8">
+                <button type="button" onclick="closeEditResultModal()" class="flex-1 px-6 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-all">
+                    Annuler
+                </button>
+                <button type="submit" class="flex-1 px-6 py-3 bg-teal-600 text-white font-black rounded-xl shadow-lg shadow-teal-500/30 hover:bg-teal-700 transition-all">
+                    Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<script>
+    function openEditResultModal(id, currentResult) {
+        const dialog = document.getElementById('editResultModal');
+        const form = document.getElementById('editResultForm');
+        const textarea = document.getElementById('modalResultTextarea');
+        
+        form.action = `/lab/radiology/${id}/update-result`;
+        textarea.value = currentResult;
+        
+        dialog.showModal();
+    }
+
+    function closeEditResultModal() {
+        document.getElementById('editResultModal').close();
+    }
+</script>
 @endsection
