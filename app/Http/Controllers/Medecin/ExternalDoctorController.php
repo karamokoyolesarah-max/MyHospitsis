@@ -116,11 +116,7 @@ class ExternalDoctorController extends Controller
             $data['id_card_verso_path'] = $request->file('id_card_verso')->store('doctors/documents', 'public');
         }
 
-        $doctor = MedecinExterne::create($data);
-
-        // Au lieu de le connecter tout de suite (ce qui déclencherait EnsureUserIsActive s'il est inactif)
-        // On le redirige vers la page de connexion avec un message de succès
-        return redirect()->route('login')->with('success', 'Votre compte a été créé avec succès. Votre demande est en cours de validation par l\'administrateur.');
+        return back()->withErrors(['email' => 'Les identifiants fournis sont incorrects.']);
     }
 
     public function dashboard()

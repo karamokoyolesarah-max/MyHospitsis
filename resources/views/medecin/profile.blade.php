@@ -96,6 +96,8 @@
                                 <button type="submit" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-200 transition-all">Réinitialiser</button>
                             </form>
                         </div>
+                        @else
+                        <button class="bg-blue-50 text-blue-600 px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-100 transition-all">Gérer mon Agenda</button>
                         @endif
                     </div>
 
@@ -143,12 +145,14 @@
                                         day: '{{ $daysMapping[$availabilitySlot->day_of_week] ?? $availabilitySlot->day_of_week }}', 
                                         start: '{{ \Carbon\Carbon::parse($availabilitySlot->start_time)->format('H:i') }}', 
                                         end: '{{ \Carbon\Carbon::parse($availabilitySlot->end_time)->format('H:i') }}',
-                                        active: {{ $availabilitySlot->is_active ? 'true' : 'false' }}
+                                        active: {{ $availabilitySlot->is_active ? 'true' : 'false' }} 
                                     }; showEditSlot = true"
                                     class="flex items-center gap-2 px-4 py-3 bg-white text-gray-500 hover:text-blue-600 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-100 transition-all group/edit">
                                     <i class="fas fa-cog transition-transform group-hover/edit:rotate-90"></i>
                                     <span class="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Modifier</span>
                                 </button>
+                            </div>
+                        </div>
                             </div>
                         </div>
                         @empty
@@ -177,7 +181,6 @@
             </div>
         </div>
     </div>
-
     <!-- Edit Info Modal -->
     <div x-show="showEditInfo" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm" style="display: none;">
         <div class="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200" @click.away="showEditInfo = false">

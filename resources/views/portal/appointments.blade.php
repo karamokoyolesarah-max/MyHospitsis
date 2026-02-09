@@ -33,18 +33,19 @@
                                                     <div class="text-xl font-black text-gray-900">{{ $appointment->appointment_datetime->format('d') }}</div>
                                                 </div>
                                                 <div>
-                                                    <h4 class="font-bold text-lg text-gray-900">
+                                                    <h4 class="font-bold text-lg text-gray-900 border-b border-gray-100 pb-1 mb-1">
                                                         {{ $appointment->service ? $appointment->service->name : 'Service non défini' }}
                                                     </h4>
                                                     <div class="flex items-center gap-2 text-sm text-gray-600">
-                                                        <i class="bi bi-person-badge-fill text-blue-600"></i>
-                                                        @if($appointment->doctor && $appointment->status === 'confirmed')
-                                                            <span class="font-bold">Dr. {{ $appointment->doctor->name }}</span>
-                                                        @elseif($appointment->doctor && ($appointment->status === 'completed' || $appointment->status === 'scheduled'))
-                                                             <span class="font-bold">Dr. {{ $appointment->doctor->name }}</span>
+                                                        <i class="fas fa-user-md text-blue-600"></i>
+                                                        @if($appointment->doctor)
+                                                            <span class="font-bold">Dr. {{ $appointment->doctor->name }} {{ $appointment->doctor->first_name ?? '' }}</span>
                                                         @else
                                                             <span class="italic text-gray-400">Médecin non assigné</span>
                                                         @endif
+                                                    </div>
+                                                    <div class="text-[10px] text-gray-400 font-bold uppercase mt-1">
+                                                        <i class="far fa-calendar-alt mr-1"></i> {{ $appointment->appointment_datetime->format('d/m/Y H:i') }}
                                                     </div>
                                                 </div>
                                             </div>
@@ -76,7 +77,7 @@
                                             <div class="flex items-center gap-2">
                                                 <button onclick="openAppointmentModal({{ json_encode($appointment) }})" 
                                                         class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition">
-                                                    <i class="bi bi-eye mr-2"></i> Voir
+                                                    <i class="fas fa-eye mr-2"></i> Voir
                                                 </button>
 
                                                 @if($appointment->status !== 'cancelled' && $appointment->status !== 'completed')
@@ -85,12 +86,13 @@
                                                         @method('DELETE')
                                                         <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-50 border border-red-200 rounded-lg font-semibold text-xs text-red-600 uppercase tracking-widest hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-25 transition"
                                                                 onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce rendez-vous ?')">
-                                                            <i class="bi bi-trash mr-2"></i> Annuler
+                                                            <i class="fas fa-trash-alt mr-2"></i> Annuler
                                                         </button>
                                                     </form>
                                                 @endif
                                             </div>
                                         </div>
+
                                     </div>
                                 </div>
                             @endforeach

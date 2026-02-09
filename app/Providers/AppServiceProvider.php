@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\{Gate, Blade, Auth, URL}; // Ajout de URL ici
+use Illuminate\Support\Facades\{Gate, Blade, Auth, URL, Schema}; // Fusion Railway + Schema
 use App\Auth\PatientUserProvider;
 use App\Models\Patient;
 
@@ -16,10 +16,11 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // FORCE LE HTTPS SUR RAILWAY
+        // Fusion Railway + Schema
         if (config('app.env') === 'production') {
             URL::forceScheme('https');
         }
+        Schema::defaultStringLength(191);
 
         // Enregistrer le provider personnalisé pour patients
         Auth::provider('patient', function ($app, array $config) {

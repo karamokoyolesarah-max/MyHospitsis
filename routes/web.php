@@ -38,6 +38,16 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+// Route de diagnostic pour les erreurs 404 en sous-dossier
+Route::get('/debug-url', function () {
+    return response()->json([
+        'uri' => request()->getRequestUri(),
+        'path' => request()->path(),
+        'base_url' => request()->getBaseUrl(),
+        'app_url' => config('app.url'),
+    ]);
+});
+
 // Sélection de portail pour l'inscription
 Route::get('/select-portal', function () {
     return view('auth.select-portal');
@@ -68,17 +78,18 @@ Route::middleware('guest')->group(function () {
             $user = auth()->user();
             return match($user->role) {
                 'doctor', 'internal_doctor' => redirect()->route('medecin.dashboard'),
+                'nurse' => redirect()->route('nurse.dashboard'),
                 'doctor_lab' => redirect()->route('lab.biologist.dashboard'),
                 'doctor_radio' => redirect()->route('lab.radiologist.dashboard'),
                 'medecin_externe' => redirect()->route('external.dashboard'),
                 'admin' => redirect()->route('superadmin.dashboard'),
-                'nurse' => redirect()->route('infirmier.dashboard'),
-                'cashier' => redirect()->route('caisse.dashboard'),
+                'cashier' => redirect()->route('cashier.dashboard'),
                 'lab_technician' => redirect()->route('lab.dashboard'),
                 'radio_technician' => redirect()->route('lab.radio_technician.dashboard'),
                 'administrative' => redirect()->route('admin.dashboard'),
                 'receptionist' => redirect()->route('reception.dashboard'),
-                default => redirect()->route('login') // Fallback
+                'medecin', 'external_doctor' => redirect()->route('external.doctor.external.dashboard'),
+                default => redirect()->intended(route('dashboard'))
             };
         }
         return back()->withErrors(['email' => 'Les identifiants fournis sont incorrects.']);
@@ -145,7 +156,9 @@ Route::prefix('portal')->name('patient.')->group(function () {
 
 // ========== PORTAIL MÉDECIN EXTERNE ==========
 Route::prefix('medecin/externe')->name('external.')->group(function () {
-    Route::middleware('guest')->group(function () {
+    Route::middleware('guest:medecin_externe')->group(function () {
+        Route::get('/login', [ExternalDoctorController::class, 'showLoginForm'])->name('login');
+        Route::post('/login', [ExternalDoctorController::class, 'login'])->name('login.submit');
         Route::get('/register', [ExternalDoctorController::class, 'showRegistrationForm'])->name('register');
         Route::post('/register', [ExternalDoctorController::class, 'register'])->name('register.submit');
     });

@@ -700,18 +700,18 @@ class PatientPortalController extends Controller
         ]);
 
         // Attach the prestation if selected
-       // Attach the prestation if selected
-if ($prestationId) {
-    $prestation = \App\Models\Prestation::find($prestationId);
-    if ($prestation) {
-        $appointment->prestations()->attach($prestationId, [
-            'quantity' => 1,
-            'unit_price' => $prestation->price,
-            'total' => $prestation->price,
-            'added_at' => now(), // <--- AJOUTE CETTE LIGNE ICI
-        ]);
-    }
-}
+        // Attach the prestation if selected
+        if ($prestationId) {
+            $prestation = \App\Models\Prestation::find($prestationId);
+            if ($prestation) {
+                $appointment->prestations()->attach($prestationId, [
+                    'quantity' => 1,
+                    'unit_price' => $prestation->price,
+                    'total' => $prestation->price,
+                    'added_at' => now(), 
+                ]);
+            }
+        }
 
         // ON NE CRÉE PLUS LE DOSSIER MÉDICAL ICI.
         // Il sera créé par l'infirmier après le paiement.

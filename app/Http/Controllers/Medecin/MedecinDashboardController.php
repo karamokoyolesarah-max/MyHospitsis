@@ -13,16 +13,7 @@ class MedecinDashboardController extends Controller
 {
     public function index()
     {
-        $user = auth()->user() ?: auth()->guard('medecin_externe')->user();
-
-        if (!$user) {
-            return redirect()->route('login')->withErrors(['identifier' => 'Session expirée ou utilisateur non trouvé.']);
-        }
-
-        // Failsafe: Rediriger les médecins externes vers leur propre tableau de bord
-        if ($user instanceof \App\Models\MedecinExterne || $user->role === 'medecin') {
-            return redirect()->route('external.doctor.external.dashboard');
-        }
+        $user = Auth::user();
 
         // 1. Récupération des patients avec leurs constantes (Eager Loading)
         // Note: On utilise withTrashed() pour le patient au cas où le dossier aurait été supprimé par erreur
@@ -98,7 +89,6 @@ class MedecinDashboardController extends Controller
             ->get();
 
         return view('medecin.dashboard', compact(
-            'user',
             'hospitalizedPatients', 
             'myPatients',
             'pendingDossiers', 

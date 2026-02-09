@@ -8,14 +8,14 @@
                 <div class="flex items-center space-x-6">
                     <div class="h-20 w-20 rounded-3xl bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-lg flex items-center justify-center text-white ring-4 ring-blue-50">
                         <span class="text-3xl font-black">
-                            {{ strtoupper(substr($user->name ?? 'DR', 0, 2)) }}
+                            {{ strtoupper(substr($user->name ?? $medecin->name ?? 'DR', 0, 2)) }}
                         </span>
                     </div>
                     <div>
-                        <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Dr. {{ $user->name ?? 'Médecin' }}</h1>
+                        <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Dr. {{ $user->name ?? $medecin->name ?? 'Médecin' }}</h1>
                         <div class="flex flex-wrap items-center gap-3 mt-2">
                             <span class="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-bold">
-                                ⚕️ {{ $user->service->name ?? ($user->specialite ?? 'Spécialiste Externe') }}
+                                ⚕️ {{ $user->service->name ?? $medecin->service->name ?? ($user->specialite ?? $medecin->specialite ?? 'Spécialiste Externe') }}
                             </span>
                             <span class="text-gray-400 font-medium flex items-center text-sm">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
