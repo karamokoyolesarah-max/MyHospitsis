@@ -100,6 +100,29 @@ class User extends Authenticatable
         return $this->role === $role;
     }
 
+    /**
+     * Get French label for user role
+     */
+    public function getRoleLabel(): string
+    {
+        $roleLabels = [
+            'admin' => 'Administrateur',
+            'doctor' => 'Médecin',
+            'internal_doctor' => 'Médecin Interne',
+            'medecin_externe' => 'Médecin Externe',
+            'doctor_lab' => 'Biologiste',
+            'doctor_radio' => 'Radiologue',
+            'lab_technician' => 'Technicien de Laboratoire',
+            'radio_technician' => 'Technicien Radio',
+            'nurse' => 'Infirmier(ère)',
+            'cashier' => 'Caissier(ère)',
+            'administrative' => 'Administratif',
+            'receptionist' => 'Réceptionniste',
+        ];
+
+        return $roleLabels[$this->role] ?? ucfirst(str_replace('_', ' ', $this->role));
+    }
+
     public function availabilities()
     {
         return $this->hasMany(DoctorAvailability::class, 'doctor_id');

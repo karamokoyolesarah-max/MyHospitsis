@@ -75,10 +75,10 @@
                 </div>
             </div>
 
-            <h1 class="text-5xl md:text-6xl font-black mb-6 leading-tight drop-shadow-2xl fade-up">
+            <h1 class="text-3xl md:text-6xl font-black mb-6 leading-tight drop-shadow-2xl fade-up">
                 Créer votre <span class="text-blue-600">compte</span>
             </h1>
-            <p class="text-xl text-slate-600 mb-12 max-w-2xl mx-auto">Choisissez votre profil pour commencer votre inscription sur la plateforme.</p>
+            <p class="text-lg md:text-xl text-slate-600 mb-12 max-w-2xl mx-auto">Choisissez votre profil pour commencer votre inscription sur la plateforme.</p>
 
             <div class="grid md:grid-cols-3 gap-8 mt-12">
 

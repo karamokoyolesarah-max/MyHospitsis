@@ -257,14 +257,40 @@
                 </div>
 
                 <div class="flex items-center gap-4">
-                    <a href="{{ route('login') }}" class="bg-gray-800 hover:bg-gray-900 text-white px-6 py-2.5 rounded-full font-semibold shadow-lg transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 inline-block">
-                        <i class="fas fa-sign-in-alt text-sm"></i>
-                        Se connecter
-                    </a>
-                    <a href="{{ route('select-portal') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-full font-semibold shadow-lg shadow-blue-200 transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 inline-block">
-                        <i class="fas fa-user-plus text-sm"></i>
-                        Créer un compte
-                    </a>
+                    <!-- Mobile Menu Toggle -->
+                    <button id="mobileMenuBtn" class="md:hidden p-2 text-gray-600 hover:text-blue-600 transition">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    
+                    <div class="hidden md:flex items-center gap-4">
+                        <a href="{{ route('login') }}" class="bg-gray-800 hover:bg-gray-900 text-white px-6 py-2.5 rounded-full font-semibold shadow-lg transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2">
+                            <i class="fas fa-sign-in-alt text-sm"></i>
+                            Se connecter
+                        </a>
+                        <a href="{{ route('select-portal') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-full font-semibold shadow-lg shadow-blue-200 transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2">
+                            <i class="fas fa-user-plus text-sm"></i>
+                            Créer un compte
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Navigation Menu -->
+        <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-slate-200 animate-slide-down">
+            <div class="px-4 pt-2 pb-6 space-y-3">
+                <a href="{{ route('login') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 text-gray-900 font-bold">
+                    <i class="fas fa-sign-in-alt text-blue-600 w-5"></i>
+                    Se connecter
+                </a>
+                <a href="{{ route('select-portal') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 text-blue-600 font-bold">
+                    <i class="fas fa-user-plus text-blue-600 w-5"></i>
+                    Créer un compte
+                </a>
+                <div class="pt-4 border-t border-slate-100 flex justify-center gap-6">
+                    <a href="#" class="text-slate-400 hover:text-blue-600"><i class="fab fa-facebook-f text-xl"></i></a>
+                    <a href="#" class="text-slate-400 hover:text-blue-600"><i class="fab fa-twitter text-xl"></i></a>
+                    <a href="#" class="text-slate-400 hover:text-blue-600"><i class="fab fa-linkedin-in text-xl"></i></a>
                 </div>
             </div>
         </div>
@@ -312,12 +338,12 @@
                     </div>
                 </div>
 
-                <h1 class="text-6xl md:text-7xl font-black mb-6 leading-tight drop-shadow-2xl fade-down">
+                <h1 class="text-4xl md:text-7xl font-black mb-6 leading-tight drop-shadow-2xl fade-down">
                     Bienvenue sur<br/>
                     <span class="text-blue-300">HospitSIS</span>
                 </h1>
 
-                <p class="text-2xl md:text-3xl mb-8 font-light leading-relaxed drop-shadow-xl fade-up">
+                <p class="text-xl md:text-3xl mb-8 font-light leading-relaxed drop-shadow-xl fade-up">
                     🏥 Votre santé au cœur de l'innovation digitale
                 </p>
 
@@ -344,9 +370,9 @@
     </section>
 
     <!-- Bande de confiance -->
-    <section class="gradient-primary py-8 text-white shadow-2xl">
+    <section class="gradient-primary py-8 text-white shadow-2xl relative z-20">
         <div class="container mx-auto px-6">
-            <div class="flex flex-wrap justify-center items-center gap-12 text-center">
+            <div class="flex flex-wrap justify-center items-center gap-6 md:gap-12 text-center">
                 <div class="flex items-center gap-3 hover:scale-110 transition duration-300 cursor-pointer">
                     <i class="fas fa-star text-4xl text-yellow-300 drop-shadow-lg"></i>
                     <div class="text-left">
@@ -526,10 +552,10 @@
     <!-- Statistiques - FOND BLANC -->
     <section class="py-20 px-6 bg-white">
         <div class="container mx-auto max-w-6xl">
-            <h2 class="text-5xl font-black text-center text-gray-900 mb-4">Notre Impact</h2>
-            <p class="text-xl text-center text-gray-600 mb-16">Des chiffres qui parlent d'eux-mêmes</p>
+            <h2 class="text-3xl md:text-5xl font-black text-center text-gray-900 mb-4">Notre Impact</h2>
+            <p class="text-lg md:text-xl text-center text-gray-600 mb-16">Des chiffres qui parlent d'eux-mêmes</p>
             
-            <div class="grid md:grid-cols-4 gap-10">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
                 <div class="text-center transform hover:scale-110 transition duration-300">
                     <div class="stat-number">15K+</div>
                     <p class="text-lg font-bold text-gray-700 mt-2">Patients Enregistrés</p>
@@ -782,6 +808,22 @@
     </div>
 
     <script>
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+                const icon = mobileMenuBtn.querySelector('i');
+                if (mobileMenu.classList.contains('hidden')) {
+                    icon.classList.replace('fa-times', 'fa-bars');
+                } else {
+                    icon.classList.replace('fa-bars', 'fa-times');
+                }
+            });
+        }
+
         // Carrousel Hero
         let currentSlide = 0;
         const slides = document.querySelectorAll('.carousel-slide');

@@ -31,6 +31,7 @@ Route::get('/', function () {
             'nurse' => redirect()->route('nurse.dashboard'),
             'medecin', 'external_doctor' => redirect()->route('external.doctor.external.dashboard'),
             'cashier' => redirect()->route('cashier.dashboard'),
+            'doctor_lab' => redirect()->route('lab.biologist.dashboard'),
             default => redirect()->route('dashboard')
         };
     }
@@ -63,13 +64,21 @@ Route::middleware('guest')->group(function () {
                 return back()->withErrors(['email' => 'Votre compte a été désactivé.']);
             }
 
+
             $user = auth()->user();
             return match($user->role) {
                 'doctor', 'internal_doctor' => redirect()->route('medecin.dashboard'),
-                'nurse' => redirect()->route('nurse.dashboard'),
-                'medecin', 'external_doctor' => redirect()->route('external.doctor.external.dashboard'),
-                'cashier' => redirect()->route('cashier.dashboard'),
-                default => redirect()->intended(route('dashboard'))
+                'doctor_lab' => redirect()->route('lab.biologist.dashboard'),
+                'doctor_radio' => redirect()->route('lab.radiologist.dashboard'),
+                'medecin_externe' => redirect()->route('external.dashboard'),
+                'admin' => redirect()->route('superadmin.dashboard'),
+                'nurse' => redirect()->route('infirmier.dashboard'),
+                'cashier' => redirect()->route('caisse.dashboard'),
+                'lab_technician' => redirect()->route('lab.dashboard'),
+                'radio_technician' => redirect()->route('lab.radio_technician.dashboard'),
+                'administrative' => redirect()->route('admin.dashboard'),
+                'receptionist' => redirect()->route('reception.dashboard'),
+                default => redirect()->route('login') // Fallback
             };
         }
         return back()->withErrors(['email' => 'Les identifiants fournis sont incorrects.']);

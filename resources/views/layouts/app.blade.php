@@ -66,6 +66,9 @@
 </head>
 <body class="bg-gray-100 font-sans antialiased" x-data="{ sidebarOpen: true, mobileMenuOpen: false }">
 
+
+
+
     <!-- Top Header -->
     <header class="bg-white shadow-sm border-b border-gray-200 z-30">
         <div class="flex items-center justify-between px-6 py-4">
@@ -153,7 +156,7 @@
                     <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                         <div class="p-4 border-b border-gray-200">
                             <p class="text-sm font-medium text-gray-800">{{ Auth::user()?->name ?? 'User' }}</p>
-                            <p class="text-xs text-gray-500">{{ Auth::user()?->role ?? 'Role' }}</p>
+                            <p class="text-xs text-gray-500">{{ Auth::user()?->getRoleLabel() ?? 'Role' }}</p>
                         </div>
                         <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profil</a>
                         <a href="{{ route('settings') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Paramètres</a>
@@ -321,49 +324,103 @@
                     </a>
                 @endif
 
-                {{-- MENU MÉDECIN BIOLOGISTE (doctor_lab) --}}
-                @if(auth()->user()?->role === 'doctor_lab')
-                    <div class="pt-4 pb-2">
-                        <p x-show="sidebarOpen" class="px-3 text-[10px] font-black text-gray-500 uppercase tracking-widest">Biologie Médicale</p>
+                {{-- BIOLOGIE MÉDICALE (Visible pour Biologistes et Techniciens Labo) --}}
+                @if(auth()->user()->role === 'doctor_lab' || auth()->user()->role === 'lab_technician')
+                    <div class="px-6 py-4">
+                        <h3 x-show="sidebarOpen" class="text-xs uppercase text-gray-500 font-semibold tracking-wider mb-3">Biologie Médicale</h3>
+                        <div class="space-y-1">
+                            @if(auth()->user()->role === 'doctor_lab')
+                                <a href="{{ route('lab.biologist.dashboard') }}" 
+                                   class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('lab.biologist.dashboard') ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/30' : 'text-gray-600 hover:bg-teal-50 hover:text-teal-600' }}">
+                                    <svg class="w-5 h-5 mr-3 {{ request()->routeIs('lab.biologist.dashboard') ? 'text-white' : 'text-gray-400 group-hover:text-teal-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                                    Tableau de bord
+                                </a>
+                                <a href="{{ route('lab.biologist.validation') }}" 
+                                   class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('lab.biologist.validation') ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/30' : 'text-gray-600 hover:bg-teal-50 hover:text-teal-600' }}">
+                                    <svg class="w-5 h-5 mr-3 {{ request()->routeIs('lab.biologist.validation') ? 'text-white' : 'text-gray-400 group-hover:text-teal-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    Validation <span class="ml-auto bg-amber-100 text-amber-800 py-0.5 px-2 rounded-full text-xs font-bold">{{ \App\Models\LabRequest::where('hospital_id', auth()->user()->hospital_id)->where('status', 'to_be_validated')->count() }}</span>
+                                </a>
+                            @else
+                                <a href="{{ route('lab.dashboard') }}" 
+                                   class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('lab.dashboard') ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/30' : 'text-gray-600 hover:bg-teal-50 hover:text-teal-600' }}">
+                                    <svg class="w-5 h-5 mr-3 {{ request()->routeIs('lab.dashboard') ? 'text-white' : 'text-gray-400 group-hover:text-teal-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                    Tableau de bord
+                                </a>
+                                <a href="{{ route('lab.worklist') }}" 
+                                   class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('lab.worklist') ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/30' : 'text-gray-600 hover:bg-teal-50 hover:text-teal-600' }}">
+                                    <svg class="w-5 h-5 mr-3 {{ request()->routeIs('lab.worklist') ? 'text-white' : 'text-gray-400 group-hover:text-teal-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                                    Liste de travail
+                                </a>
+                            @endif
+                            
+                            <a href="{{ route('lab.history') }}" 
+                               class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('lab.history') ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/30' : 'text-gray-600 hover:bg-teal-50 hover:text-teal-600' }}">
+                                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('lab.history') ? 'text-white' : 'text-gray-400 group-hover:text-teal-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Historique
+                            </a>
+                            <a href="{{ route('lab.inventory.index') }}" 
+                               class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('lab.inventory.index') ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/30' : 'text-gray-600 hover:bg-teal-50 hover:text-teal-600' }}">
+                                <svg class="w-5 h-5 mr-3 {{ request()->routeIs('lab.inventory.index') ? 'text-white' : 'text-gray-400 group-hover:text-teal-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                Stock
+                            </a>
+                        </div>
                     </div>
+                @endif
 
-                    {{-- TABLEAU DE BORD --}}
-                    <a href="{{ route('lab.biologist.dashboard') }}" 
-                       class="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('lab.biologist.dashboard') ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-900/40' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
-                        <div class="{{ request()->routeIs('lab.biologist.dashboard') ? 'text-white' : 'text-teal-500 group-hover:text-white' }} transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                {{-- IMAGERIE MÉDICALE (Visible pour Radiologues et Techniciens Radio) --}}
+                @if(auth()->user()->role === 'doctor_radio' || auth()->user()->role === 'radio_technician')
+                    <div class="px-6 py-4">
+                        <h3 x-show="sidebarOpen" class="text-xs uppercase text-gray-500 font-semibold tracking-wider mb-3">Imagerie Médicale</h3>
+                        <div class="space-y-1">
+                            @if(auth()->user()->role === 'doctor_radio')
+                                <a href="{{ route('lab.radiologist.dashboard') }}" 
+                                   class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('lab.radiologist.dashboard') ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/30' : 'text-gray-600 hover:bg-purple-50 hover:text-purple-600' }}">
+                                    <svg class="w-5 h-5 mr-3 {{ request()->routeIs('lab.radiologist.dashboard') ? 'text-white' : 'text-gray-400 group-hover:text-purple-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                                    Tableau de bord
+                                </a>
+                                <a href="{{ route('lab.radiologist.validation') }}" 
+                                   class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('lab.radiologist.validation') ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/30' : 'text-gray-600 hover:bg-purple-50 hover:text-purple-600' }}">
+                                    <svg class="w-5 h-5 mr-3 {{ request()->routeIs('lab.radiologist.validation') ? 'text-white' : 'text-gray-400 group-hover:text-purple-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    Validation 
+                                    {{-- Count could be optimized with a View Composer --}}
+                                    <span class="ml-auto bg-amber-100 text-amber-800 py-0.5 px-2 rounded-full text-xs font-bold">{{ \App\Models\LabRequest::where('hospital_id', auth()->user()->hospital_id)->where('test_category', 'imagerie')->where('status', 'to_be_validated')->count() }}</span>
+                                </a>
+                                <a href="{{ route('lab.history') }}" 
+                                   class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('lab.history') ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/30' : 'text-gray-600 hover:bg-purple-50 hover:text-purple-600' }}">
+                                    <svg class="w-5 h-5 mr-3 {{ request()->routeIs('lab.history') ? 'text-white' : 'text-gray-400 group-hover:text-purple-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    Historique
+                                </a>
+                                <a href="{{ route('lab.radiologist.stats') }}" 
+                                   class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('lab.radiologist.stats') ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/30' : 'text-gray-600 hover:bg-purple-50 hover:text-purple-600' }}">
+                                    <svg class="w-5 h-5 mr-3 {{ request()->routeIs('lab.radiologist.stats') ? 'text-white' : 'text-gray-400 group-hover:text-purple-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                    Statistiques
+                                </a>
+                            @endif
+
+                            @if(auth()->user()->role === 'radio_technician')
+                                <a href="{{ route('lab.radio_technician.dashboard') }}" 
+                                   class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('lab.radio_technician.dashboard') ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/30' : 'text-gray-600 hover:bg-purple-50 hover:text-purple-600' }}">
+                                    <svg class="w-5 h-5 mr-3 {{ request()->routeIs('lab.radio_technician.dashboard') ? 'text-white' : 'text-gray-400 group-hover:text-purple-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                                    Tableau de bord
+                                </a>
+                                <a href="{{ route('lab.radio_technician.worklist') }}" 
+                                   class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('lab.radio_technician.worklist') ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/30' : 'text-gray-600 hover:bg-purple-50 hover:text-purple-600' }}">
+                                    <svg class="w-5 h-5 mr-3 {{ request()->routeIs('lab.radio_technician.worklist') ? 'text-white' : 'text-gray-400 group-hover:text-purple-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                                    Liste de travail
+                                </a>
+                                <a href="{{ route('lab.radio_technician.inventory') }}" 
+                                   class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('lab.radio_technician.inventory') ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/30' : 'text-gray-600 hover:bg-purple-50 hover:text-purple-600' }}">
+                                    <svg class="w-5 h-5 mr-3 {{ request()->routeIs('lab.radio_technician.inventory') ? 'text-white' : 'text-gray-400 group-hover:text-purple-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                    Stock
+                                </a>
+                                <a href="{{ route('lab.radio_technician.history') }}" 
+                                   class="flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group {{ request()->routeIs('lab.radio_technician.history') ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/30' : 'text-gray-600 hover:bg-purple-50 hover:text-purple-600' }}">
+                                    <svg class="w-5 h-5 mr-3 {{ request()->routeIs('lab.radio_technician.history') ? 'text-white' : 'text-gray-400 group-hover:text-purple-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    Historique
+                                </a>
+                            @endif
                         </div>
-                        <span x-show="sidebarOpen" class="font-semibold tracking-wide text-sm">Tableau de bord</span>
-                    </a>
-
-
-
-                    {{-- VALIDATION --}}
-                    <a href="{{ route('lab.biologist.validation') }}" 
-                       class="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('lab.biologist.validation') ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-900/40' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
-                        <div class="{{ request()->routeIs('lab.biologist.validation') ? 'text-white' : 'text-gray-500 group-hover:text-white' }} transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                        </div>
-                        <span x-show="sidebarOpen" class="font-semibold tracking-wide text-sm">Validation</span>
-                    </a>
-
-                    {{-- HISTORIQUE --}}
-                    <a href="{{ route('lab.history') }}" 
-                       class="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('lab.history') ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-900/40' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
-                        <div class="{{ request()->routeIs('lab.history') ? 'text-white' : 'text-gray-500 group-hover:text-white' }} transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        </div>
-                        <span x-show="sidebarOpen" class="font-semibold tracking-wide text-sm">Historique</span>
-                    </a>
-
-                    {{-- STATS --}}
-                    <a href="{{ route('lab.biologist.stats') }}" 
-                       class="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('lab.biologist.stats') ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-900/40' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
-                        <div class="{{ request()->routeIs('lab.biologist.stats') ? 'text-white' : 'text-gray-500 group-hover:text-white' }} transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                        </div>
-                        <span x-show="sidebarOpen" class="font-semibold tracking-wide text-sm">Statistiques</span>
-                    </a>
+                    </div>
                 @endif
                 
                 @if(auth()->user() && auth()->user()->role === 'admin')

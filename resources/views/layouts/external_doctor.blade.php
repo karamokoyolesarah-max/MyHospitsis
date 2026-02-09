@@ -65,14 +65,26 @@
     
     @stack('styles')
 </head>
-<body class="bg-gray-50 font-sans antialiased" x-data="{ sidebarOpen: true, mobileMenuOpen: false }">
+<body class="bg-gray-50 font-sans antialiased" x-data="{ sidebarOpen: window.innerWidth > 1024, mobileMenuOpen: false }">
 
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex h-screen overflow-hidden relative">
         
+        <!-- Sidebar Overlay (Mobile) -->
+        <div x-show="sidebarOpen" 
+             @click="sidebarOpen = false" 
+             style="display: none;"
+             class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 lg:hidden">
+        </div>
+
         <!-- Sidebar -->
         <aside 
-            :class="sidebarOpen ? 'w-72' : 'w-20'" 
-            class="flex flex-col bg-white text-gray-800 transition-all duration-300 ease-in-out z-20 shadow-xl h-screen border-r border-gray-100">
+            x-cloak
+            :class="{
+                'translate-x-0 w-72': sidebarOpen,
+                '-translate-x-full lg:translate-x-0 w-0 lg:w-20': !sidebarOpen,
+                'fixed lg:relative': true
+            }" 
+            class="flex flex-col bg-white text-gray-800 transition-all duration-300 ease-in-out z-50 shadow-xl h-screen border-r border-gray-100 flex-shrink-0">
             
             <!-- Logo Section -->
             <div class="flex items-center justify-between px-5 py-5 border-b border-gray-100 flex-shrink-0">
@@ -307,7 +319,7 @@
                 <!-- Page Title Bar -->
                 <div class="flex items-center justify-between px-6 py-4">
                     <div class="flex items-center space-x-4">
-                        <button @click="sidebarOpen = !sidebarOpen" class="p-2 rounded-lg hover:bg-gray-100 transition focus:outline-none md:hidden">
+                        <button @click="sidebarOpen = !sidebarOpen" class="p-2 rounded-lg hover:bg-gray-100 transition focus:outline-none">
                             <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                             </svg>

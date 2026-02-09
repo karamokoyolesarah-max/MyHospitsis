@@ -129,6 +129,21 @@ if ($user->role === 'admin' || $user->role === 'super_admin') {
         return redirect()->route('cashier.dashboard');
     }
 
+    // --- 3b. LOGIQUE POUR LE BIOLOGISTE ---
+    if ($user->role === 'doctor_lab') {
+        return redirect()->route('lab.biologist.dashboard');
+    }
+
+    // --- 3c. LOGIQUE POUR LE RADIOLOGUE ---
+    if ($user->role === 'doctor_radio') {
+        return redirect()->route('lab.radiologist.dashboard');
+    }
+
+    // --- 3d. LOGIQUE POUR LE TECHNICIEN RADIO ---
+    if ($user->role === 'radio_technician') {
+        return redirect()->route('lab.radio_technician.dashboard');
+    }
+
     // --- 4. LOGIQUE POUR LE MÉDECIN ---
     $stats = $this->getStats($user);
     $todayAppointments = $this->getTodayAppointments($user);
