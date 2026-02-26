@@ -16,9 +16,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Fusion Railway + Schema
+        // Force URL scheme and root URL for subdirectory hosting
         if (config('app.env') === 'production') {
             URL::forceScheme('https');
+            URL::forceRootUrl(config('app.url'));
         }
         Schema::defaultStringLength(191);
 
