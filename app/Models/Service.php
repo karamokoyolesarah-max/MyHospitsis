@@ -6,13 +6,14 @@ use App\Traits\BelongsToHospital;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\User;
 
 class Service extends Model
 
 {
      use HasFactory, BelongsToHospital;
-    protected $fillable = ['name', 'code','hospital_id','description', 'consultation_price', 'form_config', 'diagnostic_config', 'admission_config', 'type', 'is_caisse', 'caisse_type', 'icon', 'color', 'location'];
+    protected $fillable = ['name', 'code','hospital_id','description', 'consultation_price', 'form_config', 'diagnostic_config', 'admission_config', 'type', 'is_caisse', 'caisse_type', 'icon', 'color', 'location', 'parent_id'];
 
     protected $casts = [
         'form_config' => 'array',
@@ -51,6 +52,18 @@ class Service extends Model
     public function isTechnical(): bool
     {
         return $this->type === 'technical';
+    }
+
+    // Un service peut avoir un parent (ex: Caisse liée à un Service Médical)
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Service::class, 'parent_id');
+    }
+
+    // Un service peut avoir des sous-services
+    public function children(): HasMany
+    {
+        return $this->hasMany(Service::class, 'parent_id');
     }
 
     // Un service a plusieurs utilisateurs (Docteurs, Infirmiers)

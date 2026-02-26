@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+
 <div class="min-h-screen bg-[#f8fafc]">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
@@ -17,7 +18,10 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Espace Biologiste</h1>
+                        <div class="inline-flex items-center px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-[10px] font-black text-white uppercase tracking-widest mb-3 border border-white/20">
+                            🔬 Pôle Technique (Diagnostic)
+                        </div>
+                        <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight">Espace Biologiste</h1>
                         <p class="text-teal-50 mt-1 font-medium opacity-90 flex items-center gap-2">
                             {{ auth()->user()->hospital->name ?? 'Système Hospitalier' }} • {{ \Carbon\Carbon::now()->translatedFormat('l d F Y') }}
                         </p>
@@ -26,7 +30,7 @@
                 <div class="flex items-center gap-4">
                     <div class="text-right hidden sm:block">
                         <p class="text-xs text-teal-100 uppercase font-bold tracking-widest mb-1">Status Session</p>
-                        <div class="flex items-center gap-2 text-white font-bold">
+                        <div class="flex items-center gap-2 text-white font-bold bg-black/10 px-4 py-2 rounded-2xl backdrop-blur-md border border-white/10">
                             <span class="w-2.5 h-2.5 bg-green-400 rounded-full shadow-[0_0_8px_rgba(74,222,128,0.8)] animate-pulse"></span>
                             Connecté en tant que Biologiste
                         </div>
@@ -149,7 +153,7 @@
                                 <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">{{ $validation->test_name }}</p>
                                 <div class="flex items-center gap-2 mt-2">
                                     <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-                                    <span class="text-[10px] text-gray-500 font-medium italic">{{ $validation->validated_at->diffForHumans() }}</span>
+                                    <span class="text-[10px] text-gray-500 font-medium italic">{{ $validation->validated_at ? $validation->validated_at->diffForHumans() : 'Non validé' }}</span>
                                 </div>
                             </div>
                         </div>

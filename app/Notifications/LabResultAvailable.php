@@ -46,7 +46,23 @@ class LabResultAvailable extends Notification
             'test_name' => $this->labRequest->test_name,
             'lab_request_id' => $this->labRequest->id,
             'patient_vital_id' => $this->labRequest->patient_vital_id,
-            'action_url' => route('medical-records.show', $this->labRequest->patient_vital_id),
+            'action_url' => $this->getActionUrl(),
         ];
+    }
+
+    protected function getActionUrl()
+    {
+        if ($this->labRequest->patient_vital_id) {
+            return route('medical-records.show', $this->labRequest->patient_vital_id);
+        }
+
+        // Fallback: Try to find patient by IPU and link to medical file
+        $patient = \App\Models\Patient::where('ipu', $this->labRequest->patient_ipu)->first();
+        if ($patient) {
+            return route('patients.medical-file', $patient->id);
+        }
+
+        // Final fallback
+        return route('dashboard');
     }
 }

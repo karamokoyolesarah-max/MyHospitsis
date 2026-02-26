@@ -475,45 +475,50 @@ class NurseController extends Controller
     public function patientDashboard(Patient $patient)
     {
         $user = auth()->user();
+        
+        // 1. Détection de l'admission active pour filtrer les données
+        $activeAdmission = Admission::where('patient_id', $patient->id)
+            ->where('status', 'active')
+            ->first();
+            
+        $minDate = $activeAdmission ? $activeAdmission->admission_date : now()->subHours(48);
 
-        // On récupère tout l'historique sans filtres de date pour que l'infirmier voit tout
-        // MODIFICATION: On INCLUT les archives et on filtre les doublons
-        // MODIFICATION 2: On filtre par SERVICE (Uniquement le dossier de mon service)
+        // 2. Récupération des vitaux filtrés par date et service
         $patientVitals = \App\Models\PatientVital::where('patient_ipu', $patient->ipu)
-            ->where('service_id', $user->service_id) // Filtre Service
+            ->where('service_id', $user->service_id)
+            ->where('created_at', '>=', $minDate)
             ->where(function($query) {
-                // Filtre anti-doublon (meme logique que index/archive)
                 $query->whereNotNull('doctor_id')
                       ->orWhereNotExists(function($subQuery) {
                           $subQuery->select(\DB::raw(1))
-                              ->from('patient_vitals as pv2')
-                              ->whereColumn('pv2.patient_ipu', 'patient_vitals.patient_ipu')
-                              ->whereRaw('DATE(pv2.created_at) = DATE(patient_vitals.created_at)')
-                              ->whereNotNull('pv2.doctor_id');
+                               ->from('patient_vitals as pv2')
+                               ->whereColumn('pv2.patient_ipu', 'patient_vitals.patient_ipu')
+                               ->whereRaw('DATE(pv2.created_at) = DATE(patient_vitals.created_at)')
+                               ->whereNotNull('pv2.doctor_id');
                       });
             })
-            ->with(['doctor', 'user']) // Eager load pour l'affichage correct du responsable
+            ->with(['doctor', 'user'])
             ->orderBy('created_at', 'desc')
             ->get();
 
         $patient->load([
-            'clinicalObservations' => function($query) use ($user) {
-                // Filtre les observations faites par le personnel de CE service uniquement
-                $query->whereHas('user', function($q) use ($user) {
-                    $q->where('service_id', $user->service_id);
-                })->orderBy('observation_datetime', 'desc');
+            'clinicalObservations' => function($query) use ($user, $minDate) {
+                $query->where('observation_datetime', '>=', $minDate)
+                      ->whereHas('user', function($q) use ($user) {
+                          $q->where('service_id', $user->service_id);
+                      })->orderBy('observation_datetime', 'desc');
             }, 
             'clinicalObservations.user', 
-            'labRequests' => function($query) use ($user) {
-                // MODIFICATION: Filtre Examen/Labo par service du médecin prescripteur
-                $query->whereHas('doctor', function($q) use ($user) {
-                    $q->where('service_id', $user->service_id);
-                })->orderBy('created_at', 'desc');
+            'labRequests' => function($query) use ($user, $minDate) {
+                $query->where('created_at', '>=', $minDate)
+                      ->whereHas('doctor', function($q) use ($user) {
+                          $q->where('service_id', $user->service_id);
+                      })->orderBy('created_at', 'desc');
             }, 
             'labRequests.doctor',
-            'prescriptions' => function($query) use ($user) {
-                // MODIFICATION: Filtre Traitements par service du médecin prescripteur
+            'prescriptions' => function($query) use ($user, $minDate) {
                 $query->withoutGlobalScopes()
+                      ->where('created_at', '>=', $minDate)
                       ->whereHas('doctor', function($q) use ($user) {
                           $q->where('service_id', $user->service_id);
                       })

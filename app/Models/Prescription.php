@@ -25,6 +25,7 @@ class Prescription extends Model
         'status',
         'is_visible_to_patient',
         'category',
+        'medecin_externe_id',
     ];
 
     protected $casts = [
@@ -43,6 +44,22 @@ class Prescription extends Model
     public function doctor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'doctor_id');
+    }
+
+    public function medecinExterne(): BelongsTo
+    {
+        return $this->belongsTo(MedecinExterne::class, 'medecin_externe_id');
+    }
+
+    public function getDoctorNameAttribute(): string
+    {
+        if ($this->medecinExterne) {
+            return 'Dr ' . $this->medecinExterne->prenom . ' ' . $this->medecinExterne->nom;
+        }
+        if ($this->doctor) {
+            return 'Dr ' . $this->doctor->name;
+        }
+        return 'Médecin inconnu';
     }
 
     public function hospital(): BelongsTo

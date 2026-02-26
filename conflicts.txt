@@ -1,0 +1,12 @@
+app/Http/Controllers/Patient/PatientPortalController.php
+app/Http/Controllers/PrescriptionController.php
+app/Models/Appointment.php
+app/Models/AuditLog.php
+resources/views/medical_records/show.blade.php
+resources/views/patients/auth/dashboard.blade.php
+resources/views/portal/appointments.blade.php
+resources/views/portal/book-appointment.blade.php
+resources/views/portal/medical-history.blade.php
+resources/views/portal/prescriptions.blade.php
+resources/views/portal/profile.blade.php
+resources/views/superadmin/dashboard.blade.php

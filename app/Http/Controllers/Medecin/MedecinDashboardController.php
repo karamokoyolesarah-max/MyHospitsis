@@ -15,7 +15,15 @@ class MedecinDashboardController extends Controller
     {
         $user = Auth::user();
 
-        // 1. Récupération des patients avec leurs constantes (Eager Loading)
+        // Si l'utilisateur appartient au Pôle Technique, redirection vers son dashboard spécifique
+    if ($user->isTechnical()) {
+        if ($user->role === 'doctor_radio' || $user->role === 'radio_technician') {
+            return redirect()->route('lab.radiologist.dashboard');
+        }
+        return redirect()->route('lab.biologist.dashboard');
+    }
+
+    // 1. Récupération des patients avec leurs constantes (Eager Loading)
         // Note: On utilise withTrashed() pour le patient au cas où le dossier aurait été supprimé par erreur
         $hospitalizedPatients = Admission::with(['patient' => function($q) {
                         $q->withTrashed()->withoutGlobalScopes();
@@ -60,26 +68,6 @@ class MedecinDashboardController extends Controller
             ->orderBy('appointment_datetime')
             ->get();
 
-        // 6. Rendez-vous en attente d'attribution (même service)
-        // Récupérer les jours où ce médecin est disponible
-        $availableDays = \App\Models\DoctorAvailability::where('doctor_id', $user->id)
-            ->where('is_active', true)
-            ->pluck('day_of_week')
-            ->toArray();
-
-        $pendingServiceAppointments = \App\Models\Appointment::with(['patient', 'service'])
-            ->where('hospital_id', $user->hospital_id)
-            ->where('service_id', $user->service_id)
-            ->whereIn('status', ['pending', 'confirmed'])
-            ->whereNull('doctor_id')
-            ->get()
-            ->filter(function($appointment) use ($availableDays) {
-                // Si pas de dispo configurée, on montre tout, sinon on filtre
-                if (empty($availableDays)) return true;
-                $dayName = strtolower(Carbon::parse($appointment->appointment_datetime)->format('l'));
-                return in_array($dayName, $availableDays);
-            });
-
         // 7. Prochains rendez-vous (Après aujourd'hui)
         $upcomingAppointments = \App\Models\Appointment::with(['patient', 'service'])
             ->where('doctor_id', $user->id)
@@ -95,8 +83,7 @@ class MedecinDashboardController extends Controller
             'criticalPatients', 
             'newAdmissions',
             'todayAppointments',
-            'upcomingAppointments',
-            'pendingServiceAppointments'
+            'upcomingAppointments'
         ));
     }
 }

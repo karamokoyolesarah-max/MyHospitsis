@@ -93,7 +93,7 @@ class AppointmentController extends Controller
         // 2. VALIDATION
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
-            'doctor_id' => 'required|exists:users,id',
+            'doctor_id' => 'nullable|exists:users,id',
             'service_id' => 'required|exists:services,id',
             
             // Validation des composants Date/Heure
@@ -165,6 +165,11 @@ class AppointmentController extends Controller
 
         $user = auth()->user();
         
+        // Load patients list for the select
+        $patients = Patient::where('is_active', true)
+                           ->orderBy('name')
+                           ->get(['id', 'first_name', 'name', 'ipu']);
+        
         $doctors = User::where('role', 'doctor')
                       ->where('is_active', true)
                       ->when(!$user->isAdmin() && $user->service_id, function($q) use ($user) {
@@ -174,7 +179,7 @@ class AppointmentController extends Controller
 
         $services = Service::where('is_active', true)->get();
 
-        return view('appointments.edit', compact('appointment', 'doctors', 'services'));
+        return view('appointments.edit', compact('appointment', 'patients', 'doctors', 'services'));
     }
 
     public function update(Request $request, Appointment $appointment)
@@ -290,6 +295,27 @@ class AppointmentController extends Controller
         return back()->with('success', 'Rendez-vous annulé.');
     }
 
+    public function approve(Appointment $appointment)
+    {
+        $user = auth()->user();
+
+        // Une demande de rendez-vous peut être approuvée par un admin ou un docteur du service
+        if (!$user->isAdmin() && $user->service_id !== $appointment->service_id && !$user->isDoctor()) {
+            abort(403, 'Accès non autorisé.');
+        }
+
+        $appointment->update([
+            'status' => 'confirmed',
+            'doctor_id' => $appointment->doctor_id ?? $user->id // Assigner le docteur connecté s'il n'y en a pas
+        ]);
+
+        AuditLog::log('update', 'Appointment', $appointment->id, [
+            'description' => 'Approbation et confirmation du rendez-vous par ' . $user->name
+        ]);
+
+        return back()->with('success', 'Rendez-vous approuvé et confirmé.');
+    }
+
     public function doctorAvailability(Request $request, User $doctor)
     {
         // API pour récupérer les disponibilités d'un médecin
@@ -363,6 +389,12 @@ class AppointmentController extends Controller
         try {
             // Sauvegarder l'ancien statut pour l'audit
             $oldStatus = $appointment->status;
+            
+            // LOGIC ADDED: Auto-assign doctor if unassigned and user is doctor
+            $user = auth()->user();
+            if ($user->role === 'doctor' && is_null($appointment->doctor_id)) {
+                $appointment->doctor_id = $user->id;
+            }
             
             // 3. Mise à jour du statut
             $status = $request->input('status');

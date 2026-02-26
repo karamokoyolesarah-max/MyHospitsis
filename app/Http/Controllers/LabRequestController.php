@@ -82,13 +82,30 @@ class LabRequestController extends Controller
      */
     public function index()
     {
-        $pendingRequests = LabRequest::where('hospital_id', auth()->user()->hospital_id)
-            ->where('service_id', auth()->user()->service_id)
+        $user = auth()->user();
+        $query = LabRequest::where('hospital_id', $user->hospital_id)
             ->where('is_paid', true)
             ->whereIn('status', ['pending', 'sample_received', 'in_progress', 'to_be_validated'])
-            ->with(['doctor', 'patientVital'])
-            ->orderBy('requested_at', 'desc')
-            ->get();
+            ->with(['doctor', 'patientVital']);
+
+        // Fix: Allow Lab Technicians to see all lab requests regardless of their assigned service
+        // This handles cases where a technician is assigned to a medical service (e.g., ORL) but needs to process lab tests.
+        if ($user->role === 'lab_technician') {
+            $query->where(function($q) use ($user) {
+                 $q->where('service_id', $user->service_id)
+                   ->orWhere('test_category', 'laboratoire');
+            });
+        } elseif ($user->role === 'radio_technician' || $user->role === 'manipulateur_radio') {
+             $query->where(function($q) use ($user) {
+                 $q->where('service_id', $user->service_id)
+                   ->orWhere('test_category', 'imagerie');
+            });
+        } else {
+            // Default behavior for other roles restricted to their service
+             $query->where('service_id', $user->service_id);
+        }
+
+        $pendingRequests = $query->orderBy('requested_at', 'desc')->get();
 
         $completedToday = LabRequest::where('hospital_id', auth()->user()->hospital_id)
             ->where('status', 'completed')
@@ -103,12 +120,27 @@ class LabRequestController extends Controller
      */
     public function worklist(Request $request)
     {
-        $query = LabRequest::where('hospital_id', auth()->user()->hospital_id)
-            ->where('service_id', auth()->user()->service_id)
+        $user = auth()->user();
+        $query = LabRequest::where('hospital_id', $user->hospital_id)
             ->where('is_paid', true)
             ->whereIn('status', ['pending', 'sample_received', 'in_progress'])
-            ->with(['doctor', 'patientVital'])
-            ->orderBy('requested_at', 'desc');
+            ->with(['doctor', 'patientVital']);
+
+        if ($user->role === 'lab_technician') {
+            $query->where(function($q) use ($user) {
+                 $q->where('service_id', $user->service_id)
+                   ->orWhere('test_category', 'laboratoire');
+            });
+        } elseif ($user->role === 'radio_technician' || $user->role === 'manipulateur_radio') {
+             $query->where(function($q) use ($user) {
+                 $q->where('service_id', $user->service_id)
+                   ->orWhere('test_category', 'imagerie');
+            });
+        } else {
+             $query->where('service_id', $user->service_id);
+        }
+        
+        $query->orderBy('requested_at', 'desc');
 
         if ($request->filter === 'urgent') {
             // Need a way to mark urgent, maybe clinical_info contains keyword or a separate flag.
@@ -186,13 +218,25 @@ class LabRequestController extends Controller
             ->where('clinical_info', 'like', '%urgent%')
             ->count();
 
-        // New KPIS
-        $averageTAT = LabRequest::where('hospital_id', $hospitalId)
-            ->where('status', 'completed')
-            ->whereDate('completed_at', $today)
-            ->whereNotNull('sample_received_at')
-            ->get()
-            ->avg(fn($req) => $req->completed_at->diffInMinutes($req->sample_received_at));
+        // New KPIS - Added safety try/catch and null checks
+        $averageTAT = 0;
+        try {
+            $averageTAT = LabRequest::where('hospital_id', $hospitalId)
+                ->where('status', 'completed')
+                ->whereDate('completed_at', $today)
+                ->whereNotNull('sample_received_at')
+                ->whereNotNull('completed_at')
+                ->get()
+                ->avg(function($req) {
+                    if ($req->completed_at && $req->sample_received_at) {
+                        return $req->completed_at->diffInMinutes($req->sample_received_at);
+                    }
+                    return 0;
+                }) ?? 0;
+        } catch (\Exception $e) {
+            \Log::error("Error calculating TAT: " . $e->getMessage());
+            $averageTAT = 0;
+        }
 
         // Recent Activity
         $recentValidations = LabRequest::where('hospital_id', $hospitalId)
@@ -294,12 +338,19 @@ class LabRequestController extends Controller
             ->where('status', 'completed')
             ->with(['doctor', 'patientVital', 'biologist', 'labTechnician']);
         
-        // Biologists see only results they validated
-        // Lab technicians see their service results
-        if ($user->role === 'doctor_lab') {
-            $query->where('biologist_id', $user->id);
+        // Align visibility with index/worklist logic
+        if ($user->role === 'lab_technician' || $user->role === 'doctor_lab') {
+            $query->where(function($q) use ($user) {
+                 $q->where('service_id', $user->service_id)
+                   ->orWhere('test_category', 'laboratoire');
+            });
+        } elseif ($user->role === 'radio_technician' || $user->role === 'manipulateur_radio') {
+             $query->where(function($q) use ($user) {
+                 $q->where('service_id', $user->service_id)
+                   ->orWhere('test_category', 'imagerie');
+            });
         } else {
-            $query->where('service_id', $user->service_id);
+             $query->where('service_id', $user->service_id);
         }
         
         // Date/period filter
@@ -337,5 +388,36 @@ class LabRequestController extends Controller
         $completedRequests = $query->paginate(20);
 
         return view('lab.history', compact('completedRequests'));
+    }
+
+    /**
+     * Lab Inventory Management
+     */
+    public function inventory()
+    {
+        $inventory = \App\Models\LabInventory::where('hospital_id', auth()->user()->hospital_id)
+            ->orderBy('name')
+            ->get();
+
+        return view('lab.inventory', compact('inventory'));
+    }
+
+    /**
+     * Print Lab Result PDF
+     */
+    public function print(LabRequest $labRequest)
+    {
+        // Ensure user has access
+        $user = auth()->user();
+        if ($labRequest->hospital_id !== $user->hospital_id) {
+            abort(403);
+        }
+
+        // Load necessary relationships
+        $labRequest->load(['doctor', 'patientVital', 'hospital', 'biologist']);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('lab.pdf.result', compact('labRequest'));
+        
+        return $pdf->stream('Resultat_' . $labRequest->created_at->format('Ymd') . '.pdf');
     }
 }

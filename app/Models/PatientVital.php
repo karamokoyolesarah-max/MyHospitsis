@@ -36,12 +36,24 @@ class PatientVital extends Model
         'ordonnance',
         'custom_vitals',
         'status',
+        'meta',
         'is_visible_to_patient',
+        'medecin_externe_id',
     ];
 
     protected $casts = [
         'custom_vitals' => 'array',
+        'meta' => 'array',
+        'is_visible_to_patient' => 'boolean',
     ];
+
+    /**
+     * Relation : Un dossier de constantes appartient à un service.
+     */
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class);
+    }
 
     /**
      * Relation : Un dossier de constantes appartient à une infirmière (User).
@@ -57,6 +69,25 @@ class PatientVital extends Model
     public function doctor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'doctor_id');
+    }
+
+    /**
+     * Relation : Un dossier de constantes peut être assigné à un médecin externe.
+     */
+    public function medecinExterne(): BelongsTo
+    {
+        return $this->belongsTo(MedecinExterne::class, 'medecin_externe_id');
+    }
+
+    public function getDoctorNameAttribute(): string
+    {
+        if ($this->medecinExterne) {
+            return 'Dr ' . $this->medecinExterne->prenom . ' ' . $this->medecinExterne->nom;
+        }
+        if ($this->doctor) {
+            return 'Dr ' . $this->doctor->name;
+        }
+        return 'Médecin inconnu';
     }
 
     /**
@@ -76,13 +107,7 @@ class PatientVital extends Model
     }
 
 
-    /**
-     * Relation : Un dossier de constantes appartient à un service.
-     */
-    public function service(): BelongsTo
-    {
-        return $this->belongsTo(Service::class, 'service_id');
-    }
+
 
     /**
      * Relation : Les demandes d'analyses/examens associées.

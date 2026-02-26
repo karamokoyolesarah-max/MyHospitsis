@@ -29,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn () => route('login'));
 
         $middleware->alias([
+            'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
             'role' => \App\Http\Middleware\CheckRole::class,
             'active_user' => \App\Http\Middleware\EnsureUserIsActive::class,
             'mfa' => \App\Http\Middleware\VerifyMfa::class,
@@ -39,6 +40,13 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             \App\Http\Middleware\EnsureUserIsActive::class,
+        ]);
+
+        // Exclude webhook endpoints from CSRF verification
+        $middleware->validateCsrfTokens(except: [
+            'payment/cinetpay/webhook',
+            'webhook/recharge',
+            'admin-system/payment/cinetpay/webhook',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -22,11 +22,17 @@ class Appointment extends Model
         'hospital_id', 'patient_id', 'doctor_id', 'service_id',
         'appointment_datetime', 'duration', 'status', 'type',
         'reason', 'notes', 'consultation_type', 'home_address', 'cashier_id',
-        'payment_transaction_id', 'payment_method', 'payment_operator'
+        'payment_transaction_id', 'payment_method', 'payment_operator',
+        'medecin_externe_id', 'doctor_current_latitude', 'doctor_current_longitude',
+        'estimated_arrival_time', 'travel_started_at', 'travel_completed_at',
+        'calculated_distance_km', 'calculated_travel_fee', 'tax_amount', 'total_amount',
+        'patient_confirmation_start_at', 'patient_confirmation_end_at', 'rating_stars', 'rating_comment',
+        'secretary_archived_at'
     ];
 
     protected $casts = [
         'appointment_datetime' => 'datetime',
+        'secretary_archived_at' => 'datetime',
     ];
 
     public function patient(): BelongsTo {
@@ -43,7 +49,7 @@ class Appointment extends Model
 
     public function prestations(): BelongsToMany {
         return $this->belongsToMany(Prestation::class, 'appointment_prestations')
-                    ->withPivot('quantity', 'unit_price', 'total')
+                    ->withPivot('quantity', 'unit_price', 'total', 'added_at', 'added_by')
                     ->withTimestamps();
     }
 
@@ -59,5 +65,9 @@ class Appointment extends Model
 
     public function cashier(): BelongsTo {
         return $this->belongsTo(User::class, 'cashier_id');
+    }
+
+    public function medecinExterne(): BelongsTo {
+        return $this->belongsTo(MedecinExterne::class, 'medecin_externe_id');
     }
 }

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Documents Médicaux - Portail Patient</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <a href="{{ route('patient.dashboard') }}" class="text-gray-600 hover:text-gray-900 transition-colors">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </a>
+                    <h1 class="text-lg font-bold text-gray-900">Mes Documents Médicaux</h1>
+                </div>
+                <div class="flex items-center">
+                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
+                        {{ $documents->count() }} Document(s)
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 border-b border-gray-100">
+                        <tr>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Date</th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Type</th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Titre</th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Médecin</th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @forelse($documents as $document)
+                            <tr class="hover:bg-green-50/30 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ $document->created_at->format('d/m/Y') }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        @if($document->document_type === 'prescription')
+                                            bg-blue-100 text-blue-800
+                                        @elseif($document->document_type === 'report')
+                                            bg-green-100 text-green-800
+                                        @elseif($document->document_type === 'analysis')
+                                            bg-purple-100 text-purple-800
+                                        @else
+                                            bg-gray-100 text-gray-800
+                                        @endif">
+                                        {{ ucfirst($document->document_type ?? 'Document') }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ $document->title ?? 'Document médical' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 mr-3">
+                                            <i class="fas fa-user-md text-xs"></i>
+                                        </div>
+                                        <div class="text-sm font-semibold text-gray-900">
+                                            {{ $document->doctor->name ?? 'Médecin' }}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex justify-end space-x-2">
+                                        @if($document->file_path)
+                                            <a href="{{ Storage::url($document->file_path) }}" target="_blank"
+                                               class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all text-sm font-medium shadow-sm">
+                                                <i class="fas fa-eye mr-2"></i> Voir
+                                            </a>
+                                            <a href="{{ Storage::url($document->file_path) }}" download
+                                               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-medium shadow-sm">
+                                                <i class="fas fa-download mr-2"></i> Télécharger
+                                            </a>
+                                        @else
+                                            <span class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-500 rounded-lg text-sm font-medium">
+                                                <i class="fas fa-file mr-2"></i> Non disponible
+                                            </span>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-6 py-16 text-center text-gray-500">
+                                    <div class="flex flex-col items-center">
+                                        <i class="fas fa-folder-open text-gray-200 text-5xl mb-4"></i>
+                                        <p>Aucun document médical n'est encore disponible.</p>
+                                        <p class="text-sm mt-2">Les documents apparaîtront ici après vos consultations.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @if($documents->hasPages())
+            <div class="mt-8">
+                {{ $documents->links() }}
+            </div>
+        @endif
+
+        <div class="mt-8 p-4 bg-green-50 rounded-xl flex items-start space-x-3">
+            <i class="fas fa-info-circle text-green-500 mt-1"></i>
+            <p class="text-sm text-green-800">
+                Tous vos documents médicaux sont stockés de manière sécurisée. Vous pouvez les consulter ou les télécharger à tout moment.
+            </p>
+        </div>
+    </main>
+
+</body>
+</html>

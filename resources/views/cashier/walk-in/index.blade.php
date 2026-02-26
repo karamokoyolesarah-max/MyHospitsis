@@ -492,6 +492,42 @@
                                      <div>
                                          <label class="block text-sm font-semibold text-gray-800 mb-2">Numéro Mobile Money <span class="text-red-500">*</span></label>
                                          <input type="tel" name="mobile_number" id="mobileNumber" placeholder="Ex: 0701234567" class="w-full rounded-lg border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-200 focus:ring-opacity-50 transition shadow-sm h-11">
+                                 </div>
+                             </div>
+                             
+                             <!-- QR Code Display -->
+                             <div id="qrCodeDisplay" class="hidden mt-4 p-5 bg-white rounded-2xl border-2 border-orange-400 shadow-lg">
+                                 <div class="text-center">
+                                     <p class="text-sm font-black text-orange-700 uppercase tracking-wide mb-3 flex items-center justify-center">
+                                         <i class="fas fa-qrcode mr-2"></i> Scannez ce QR Code pour payer
+                                     </p>
+                                     <div id="qrCodeImage" class="flex justify-center mb-4 bg-gray-50 p-4 rounded-xl">
+                                         <!-- QR Code sera affiché ici -->
+                                     </div>
+                                     <div class="bg-orange-50 p-3 rounded-lg">
+                                         <p class="text-xs text-gray-600">Numéro de réception :</p>
+                                         <p id="operatorNumber" class="font-bold text-lg text-orange-700"></p>
+                                     </div>
+                                 </div>
+                             </div>
+
+                             <!-- Payment Reference Field -->
+                             <div id="paymentReferenceField" class="hidden mt-4">
+                                 <label class="block text-sm font-bold text-gray-800 mb-2">
+                                     Référence de Paiement <span class="text-red-500">*</span>
+                                 </label>
+                                 <input type="text" name="payment_reference" id="paymentReference"
+                                        placeholder="Ex: MP240212123456"
+                                        class="w-full px-4 py-3 rounded-xl border-2 border-gray-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all font-mono font-bold uppercase text-center text-lg tracking-wider">
+                                 <p class="text-xs text-orange-700 mt-2 flex items-start bg-orange-50 p-3 rounded-lg">
+                                     <i class="fas fa-info-circle mr-2 mt-0.5"></i>
+                                     <span><strong>Important :</strong> Demandez au patient la référence de paiement qu'il a reçue après avoir payé via Mobile Money</span>
+                                 </p>
+                             </div>
+                             
+                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-0">
+                                 <div style="display: none;">
+                                     <input type="tel" name="mobile_number_hidden" id="mobileNumberHidden" placeholder="Ex: 0701234567" class="w-full rounded-lg border-gray-300 focus:border-orange-500 focus:ring focus:ring-orange-200 focus:ring-opacity-50 transition shadow-sm h-11">
                                      </div>
                                  </div>
                                  <p class="text-xs text-orange-700 mt-2 flex items-start">
@@ -999,5 +1035,81 @@
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner animate-spin"></i> Traitement...';
     };
+
+    // Fonction pour afficher le QR Code selon l'opérateur sélectionné
+    function toggleMobileMoneyFields() {
+        const mmFields = document.getElementById('mobileMoneyFields');
+        const insuranceFields = document.getElementById('insuranceFields');
+        const paymentMode = document.querySelector('input[name="payment_mode"]:checked').value;
+        const mmInputs = mmFields.querySelectorAll('select, input');
+        const insuranceInputs = insuranceFields.querySelectorAll('input');
+
+        // Reset
+        mmFields.classList.add('hidden');
+        insuranceFields.classList.add('hidden');
+        mmInputs.forEach(input => input.required = false);
+        insuranceInputs.forEach(input => input.required = false);
+        document.getElementById('paymentReference').required = false;
+
+        if (paymentMode === 'mobile_money') {
+            mmFields.classList.remove('hidden');
+            document.getElementById('mobileOperator').required = true;
+            document.getElementById('mobileNumber').required = true;
+            // Note: paymentReference required est géré par showQRCode
+        } else if (paymentMode === 'assurance') {
+            insuranceFields.classList.remove('hidden');
+            insuranceInputs.forEach(input => input.required = true);
+        }
+    }
+
+    function showQRCode(operator) {
+        console.log('Changement opérateur:', operator); // Debug
+        const qrDisplay = document.getElementById('qrCodeDisplay');
+        const qrImage = document.getElementById('qrCodeImage');
+        const operatorNumber = document.getElementById('operatorNumber');
+        const refField = document.getElementById('paymentReferenceField');
+        
+        // Données de l'hôpital (QR Codes et numéros) - Utilisation de auth()->user() pour être sûr
+        const hospitalData = {
+            qr_orange: '{{ auth()->user()->hospital->payment_qr_orange ?? "" }}',
+            qr_mtn: '{{ auth()->user()->hospital->payment_qr_mtn ?? "" }}',
+            qr_moov: '{{ auth()->user()->hospital->payment_qr_moov ?? "" }}',
+            qr_wave: '{{ auth()->user()->hospital->payment_qr_wave ?? "" }}',
+            number_orange: '{{ auth()->user()->hospital->payment_orange_number ?? "" }}',
+            number_mtn: '{{ auth()->user()->hospital->payment_mtn_number ?? "" }}',
+            number_moov: '{{ auth()->user()->hospital->payment_moov_number ?? "" }}',
+            number_wave: '{{ auth()->user()->hospital->payment_wave_number ?? "" }}'
+        };
+        
+        console.log('Données Hôpital:', hospitalData); // Debug
+
+        
+        if (operator && hospitalData['qr_' + operator]) {
+            // Afficher le QR Code
+            qrImage.innerHTML = `<img src="/storage/${hospitalData['qr_' + operator]}" 
+                                      alt="QR ${operator.toUpperCase()}" 
+                                      class="w-56 h-56 object-contain border-4 border-orange-200 rounded-2xl shadow-lg bg-white p-2">`;
+            operatorNumber.textContent = hospitalData['number_' + operator] || 'Non configuré';
+            qrDisplay.classList.remove('hidden');
+            refField.classList.remove('hidden');
+            
+            // Rendre le champ référence obligatoire
+            document.getElementById('paymentReference').required = true;
+        } else {
+            qrDisplay.classList.add('hidden');
+            refField.classList.add('hidden');
+            document.getElementById('paymentReference').required = false;
+        }
+    }
+
+    // Écouter les changements d'opérateur Mobile Money
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileOperatorSelect = document.getElementById('mobileOperator');
+        if (mobileOperatorSelect) {
+            mobileOperatorSelect.addEventListener('change', function() {
+                showQRCode(this.value);
+            });
+        }
+    });
 </script>
 @endsection

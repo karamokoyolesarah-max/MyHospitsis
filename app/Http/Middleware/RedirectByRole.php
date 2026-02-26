@@ -122,10 +122,28 @@ class RedirectByRole
                 ],
             ];
             
-            $userRole = $user->role;
+            $userRole = strtolower($user->role);
+            
+            // Allow all routes if user is admin
+            if ($user->isAdmin() || $userRole === 'admin') {
+                return $next($request);
+            }
+
             $allowedRoutes = $roleRoutes[$userRole] ?? [];
             
-            // Vérifier si l'utilisateur accède à une route non autorisée
+            // Unification Docteur/Médecin : Si l'un est autorisé, l'autre le devient
+            if (empty($allowedRoutes)) {
+                if ($userRole === 'medecin') $allowedRoutes = $roleRoutes['doctor'] ?? [];
+                if ($userRole === 'doctor') $allowedRoutes = $roleRoutes['medecin'] ?? [];
+            }
+
+            // Accès Pôle Technique pour les médecins génériques
+            if ($user->isTechnical() && (in_array($userRole, ['doctor', 'medecin']))) {
+                $allowedRoutes = array_merge($allowedRoutes, $roleRoutes['doctor_lab'] ?? []);
+                // On peut aussi ajouter doctor_radio si besoin
+            }
+            
+            // Vérifier si l'utilisateur accède à une route autorisée
             $isAuthorized = false;
             foreach ($allowedRoutes as $pattern) {
                 if (fnmatch($pattern, $currentRoute)) {
@@ -134,6 +152,15 @@ class RedirectByRole
                 }
             }
             
+            // Si pas autorisé, on laisse passer si c'est une route commune (profil, logout, etc.)
+            $commonRoutes = ['profile.*', 'logout', 'dashboard', 'home'];
+            foreach ($commonRoutes as $pattern) {
+                 if (fnmatch($pattern, $currentRoute)) {
+                    $isAuthorized = true;
+                    break;
+                }
+            }
+
             // Si pas autorisé, rediriger vers son dashboard
             if (!$isAuthorized && isset($roleDashboards[$userRole])) {
                 return redirect()->route($roleDashboards[$userRole])

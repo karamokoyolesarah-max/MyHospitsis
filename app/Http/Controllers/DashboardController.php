@@ -144,6 +144,16 @@ if ($user->role === 'admin' || $user->role === 'super_admin') {
         return redirect()->route('lab.radio_technician.dashboard');
     }
 
+    // --- 3e. LOGIQUE POUR LE PHARMACIEN ---
+    if ($user->role === 'pharmacist') {
+        return redirect()->route('pharmacy.dashboard');
+    }
+
+    // --- 3f. LOGIQUE POUR LA SECRÉTAIRE ---
+    if ($user->role === 'secretary') {
+        return redirect()->route('secretary.index');
+    }
+
     // --- 4. LOGIQUE POUR LE MÉDECIN ---
     $stats = $this->getStats($user);
     $todayAppointments = $this->getTodayAppointments($user);

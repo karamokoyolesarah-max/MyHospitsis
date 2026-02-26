@@ -71,30 +71,100 @@
                                     </div>
                                     <div class="bg-white p-4 rounded-2xl border border-slate-200">
                                         <div class="text-xs text-slate-400 font-bold uppercase tracking-tight mb-2">Identification</div>
-                                        <div class="text-sm font-bold text-slate-800">Ordre : {{ $specialist->numero_ordre }}</div>
-                                        <div class="text-xs text-slate-500 mt-1 line-clamp-2">{{ $specialist->adresse_residence ?? 'Adresse non spécifiée' }}</div>
+                                        <div class="space-y-1">
+                                            @if($specialist->numero_ordre)
+                                                <div class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                                    <i class="bi bi-hash text-blue-500"></i> N° Ordre: {{ $specialist->numero_ordre }}
+                                                </div>
+                                            @endif
+                                            @if($specialist->numero_matricule)
+                                                <div class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                                    <i class="bi bi-hash text-indigo-500"></i> Matricule: {{ $specialist->numero_matricule }}
+                                                </div>
+                                            @endif
+                                            @if($specialist->numero_diplome)
+                                                <div class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                                    <i class="bi bi-hash text-purple-500"></i> N° Diplôme: {{ $specialist->numero_diplome }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="text-xs text-slate-500 mt-2 border-t border-slate-50 pt-1 line-clamp-2">{{ $specialist->adresse_residence ?? 'Adresse non spécifiée' }}</div>
                                     </div>
                                     <div class="bg-white p-4 rounded-2xl border border-slate-200 lg:col-span-1 col-span-2">
                                         <div class="text-xs text-slate-400 font-bold uppercase tracking-tight mb-3">Documents Justificatifs</div>
                                         <div class="flex flex-wrap gap-2">
                                             @if($specialist->diplome_path)
-                                                <a href="{{ Storage::url($specialist->diplome_path) }}" target="_blank" class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-100 transition-colors flex items-center gap-1.5">
-                                                    <i class="bi bi-file-earmark-pdf-fill"></i> Diplôme
-                                                </a>
+                                                <button onclick="openDocModal('{{ Storage::url($specialist->diplome_path) }}', 'Diplôme — Dr. {{ $specialist->prenom }} {{ $specialist->nom }}')"
+                                                    class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-100 transition-colors flex items-center gap-1.5">
+                                                    <i class="bi bi-file-earmark-image-fill"></i> Diplôme
+                                                </button>
+                                            @else
+                                                <span class="text-xs text-slate-400 italic">Diplôme manquant</span>
                                             @endif
+
                                             @if($specialist->id_card_recto_path)
-                                                <a href="{{ Storage::url($specialist->id_card_recto_path) }}" target="_blank" class="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-colors flex items-center gap-1.5">
+                                                <button onclick="openDocModal('{{ Storage::url($specialist->id_card_recto_path) }}', 'CNI Recto — Dr. {{ $specialist->prenom }} {{ $specialist->nom }}')"
+                                                    class="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-colors flex items-center gap-1.5">
                                                     <i class="bi bi-person-vcard-fill"></i> CNI Recto
-                                                </a>
+                                                </button>
+                                            @else
+                                                <span class="text-xs text-slate-400 italic">CNI Recto manquant</span>
                                             @endif
+
                                             @if($specialist->id_card_verso_path)
-                                                <a href="{{ Storage::url($specialist->id_card_verso_path) }}" target="_blank" class="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-colors flex items-center gap-1.5">
+                                                <button onclick="openDocModal('{{ Storage::url($specialist->id_card_verso_path) }}', 'CNI Verso — Dr. {{ $specialist->prenom }} {{ $specialist->nom }}')"
+                                                    class="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-colors flex items-center gap-1.5">
                                                     <i class="bi bi-person-vcard-fill"></i> CNI Verso
-                                                </a>
+                                                </button>
+                                            @else
+                                                <span class="text-xs text-slate-400 italic">CNI Verso manquant</span>
                                             @endif
-                                            @if(!$specialist->diplome_path && !$specialist->id_card_recto_path && !$specialist->id_card_verso_path)
-                                                <span class="text-xs text-slate-400 italic">Aucun document fourni</span>
+
+                                            @if($specialist->video_verification_path)
+                                                <button onclick="openVideoModal('{{ Storage::url($specialist->video_verification_path) }}', 'Vidéo KYC — Dr. {{ $specialist->prenom }} {{ $specialist->nom }}')"
+                                                    class="px-3 py-1.5 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-100 transition-colors flex items-center gap-1.5 border border-red-200">
+                                                    <i class="bi bi-play-circle-fill"></i> ▶ Vidéo KYC
+                                                </button>
+                                            @else
+                                                <span class="text-xs text-red-400 italic flex items-center gap-1">
+                                                    <i class="bi bi-exclamation-triangle-fill"></i> Vidéo manquante
+                                                </span>
                                             @endif
+                                        </div>
+                                    </div>
+
+                                    
+                                    <!-- Nouvelle Section Sécurité & Affiliation -->
+                                    <div class="col-span-2 lg:col-span-3 bg-slate-50 p-4 rounded-2xl border border-slate-200 mt-2">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <div class="text-xs text-slate-400 font-bold uppercase tracking-tight mb-2">Affiliation</div>
+                                                <div class="text-sm">
+                                                    <span class="font-bold text-slate-700">{{ $specialist->affiliation_type === 'hospital' ? 'Hôpital / Clinique' : 'Superviseur Indépendant' }}</span>
+                                                    <div class="text-slate-600">{{ $specialist->affiliation_name }}</div>
+                                                    <div class="text-slate-500 text-xs mt-1">Conatct Référent : {{ $specialist->affiliation_contact }}</div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="text-xs text-slate-400 font-bold uppercase tracking-tight mb-2">Vérification de Sécurité</div>
+                                                <div class="flex flex-col gap-1">
+                                                    <div class="flex items-center gap-2 text-sm">
+                                                        <i class="bi {{ $specialist->is_email_verified ? 'bi-check-circle-fill text-green-500' : 'bi-x-circle-fill text-red-500' }}"></i>
+                                                        <span class="{{ $specialist->is_email_verified ? 'text-slate-700' : 'text-red-600 font-bold' }}">
+                                                            {{ $specialist->is_email_verified ? 'Email Vérifié (OTP)' : 'Email NON Vérifié' }}
+                                                        </span>
+                                                    </div>
+                                                    @if($specialist->video_verification_path)
+                                                        <div class="flex items-center gap-2 text-sm text-green-600">
+                                                            <i class="bi bi-check-circle-fill"></i> Vidéo KYC Reçue
+                                                        </div>
+                                                    @else
+                                                        <div class="flex items-center gap-2 text-sm text-red-600 font-bold">
+                                                            <i class="bi bi-exclamation-triangle-fill"></i> Vidéo KYC Manquante
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -123,7 +193,95 @@
     </div>
 </div>
 
+<!-- ====== MODAL: Image / Document Viewer ====== -->
+<div id="docModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-[999] flex items-center justify-center p-4" onclick="closeDocModal(event)">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+            <h3 id="docModalTitle" class="text-lg font-black text-slate-900 truncate"></h3>
+            <button onclick="closeDocModal()" class="text-slate-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-xl">
+                <i class="bi bi-x-lg text-xl"></i>
+            </button>
+        </div>
+        <div class="flex-1 overflow-auto flex items-center justify-center p-4 bg-slate-50">
+            <img id="docModalImg" src="" alt="Document" class="max-w-full max-h-[70vh] rounded-2xl shadow-lg object-contain">
+        </div>
+        <div class="px-6 py-3 border-t border-slate-100 flex justify-end gap-3">
+            <a id="docModalDownload" href="#" target="_blank" class="px-5 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-blue-700 transition-colors">
+                <i class="bi bi-download"></i> Ouvrir dans un nouvel onglet
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ====== MODAL: KYC Video Player ====== -->
+<div id="videoModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden z-[999] flex items-center justify-center p-4" onclick="closeVideoModal(event)">
+    <div class="bg-slate-900 rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700">
+            <h3 id="videoModalTitle" class="text-lg font-black text-white flex items-center gap-2 truncate">
+                <i class="bi bi-camera-video-fill text-red-400"></i>
+                <span></span>
+            </h3>
+            <button onclick="closeVideoModal()" class="text-slate-400 hover:text-red-400 transition-colors p-2 hover:bg-red-900/30 rounded-xl">
+                <i class="bi bi-x-lg text-xl"></i>
+            </button>
+        </div>
+        <div class="p-4 bg-black">
+            <video id="kycVideoPlayer" controls class="w-full rounded-2xl" style="max-height:60vh;">
+                <source id="kycVideoSource" src="" type="video/mp4">
+                Votre navigateur ne supporte pas la lecture vidéo.
+            </video>
+        </div>
+        <div class="px-6 py-3 border-t border-slate-700 flex justify-between items-center">
+            <span class="text-sm text-slate-400 font-medium">Vidéo de vérification d'identité (KYC)</span>
+            <a id="videoModalDownload" href="#" target="_blank" class="px-5 py-2 bg-red-600 text-white rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-red-700 transition-colors">
+                <i class="bi bi-download"></i> Télécharger
+            </a>
+        </div>
+    </div>
+</div>
+
 <script>
+    // --- Document (image) modal ---
+    function openDocModal(url, title) {
+        document.getElementById('docModalTitle').textContent = title;
+        document.getElementById('docModalImg').src = url;
+        document.getElementById('docModalDownload').href = url;
+        const modal = document.getElementById('docModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeDocModal(event) {
+        if (event && event.target !== document.getElementById('docModal')) return;
+        document.getElementById('docModal').classList.add('hidden');
+        document.getElementById('docModal').classList.remove('flex');
+        document.getElementById('docModalImg').src = '';
+    }
+
+    // --- Video modal ---
+    function openVideoModal(url, title) {
+        document.getElementById('videoModalTitle').querySelector('span').textContent = title;
+        document.getElementById('kycVideoSource').src = url;
+        document.getElementById('videoModalDownload').href = url;
+        const player = document.getElementById('kycVideoPlayer');
+        player.load();
+        const modal = document.getElementById('videoModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        player.play().catch(() => {});
+    }
+
+    function closeVideoModal(event) {
+        if (event && event.target !== document.getElementById('videoModal')) return;
+        const player = document.getElementById('kycVideoPlayer');
+        player.pause();
+        player.currentTime = 0;
+        document.getElementById('videoModal').classList.add('hidden');
+        document.getElementById('videoModal').classList.remove('flex');
+        document.getElementById('kycVideoSource').src = '';
+    }
+
+    // --- Specialist validation ---
     function processSpecialistValidation(id, action) {
         if (!confirm(`Êtes-vous sûr de vouloir ${action === 'approve' ? 'approuver' : 'rejeter'} ce médecin ?`)) return;
 
@@ -138,14 +296,10 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Animation de sortie de la carte
                 const card = document.getElementById(`specialist-card-${id}`);
                 card.style.opacity = '0';
                 card.style.transform = 'translateX(20px)';
-                
-                setTimeout(() => {
-                    location.reload(); // Recharger pour mettre à jour les comptes et stats
-                }, 500);
+                setTimeout(() => { location.reload(); }, 500);
             } else {
                 alert(data.message || 'Une erreur est survenue');
             }

@@ -94,7 +94,7 @@
                 <tbody class="divide-y divide-gray-50">
                     @foreach($pendingTransfers as $transfer)
                     <tr class="hover:bg-amber-50/30 transition-colors">
-                        <td class="px-6 py-4 text-xs font-bold text-gray-600">{{ $transfer->created_at->format('d/m/Y H:i') }}</td>
+                        <td class="px-6 py-4 text-xs font-bold text-gray-600">{{ $transfer->created_at?->format('d/m/Y H:i') ?? '-' }}</td>
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-2">
                                 <span class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-600">{{ substr($transfer->cashier->name ?? '?', 0, 1) }}</span>
@@ -208,7 +208,7 @@
                     <tbody class="divide-y divide-gray-50">
                         @forelse($latestInvoices as $inv)
                             <tr class="hover:bg-gray-50/30 transition-colors">
-                                <td class="px-5 py-3 text-[10px] font-bold text-gray-500 font-mono">{{ $inv->created_at->format('H:i') }}</td>
+                                <td class="px-5 py-3 text-[10px] font-bold text-gray-500 font-mono">{{ $inv->created_at?->format('H:i') ?? '-' }}</td>
                                 <td class="px-5 py-3">
                                     <span class="block text-[10px] font-black text-gray-700 uppercase">{{ $inv->service->name ?? 'Général' }}</span>
                                     <span class="block text-[9px] text-gray-400 font-bold">#{{ $inv->invoice_number }}</span>
@@ -263,7 +263,7 @@
                     <tbody class="divide-y divide-white/5">
                         @forelse($latestTransactions as $log)
                             <tr class="hover:bg-white/5 transition-colors">
-                                <td class="px-5 py-4 text-[10px] font-bold text-gray-500">{{ $log->created_at->format('d/m H:i') }}</td>
+                                <td class="px-5 py-4 text-[10px] font-bold text-gray-500">{{ $log->created_at?->format('d/m H:i') ?? '-' }}</td>
                                 <td class="px-5 py-4">
                                     <p class="text-xs font-black text-white">{{ $log->description }}</p>
                                     <p class="text-[9px] text-gray-500 uppercase font-bold">{{ $log->source_type }}</p>
@@ -334,7 +334,7 @@
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-gray-900">{{ $inv->patient->name ?? 'Patient' }}</p>
-                                <p class="text-[10px] text-gray-500">{{ $inv->created_at->diffForHumans() }}</p>
+                                <p class="text-[10px] text-gray-500">{{ $inv->created_at?->diffForHumans() ?? '-' }}</p>
                             </div>
                         </div>
                         <span class="text-xs font-black text-red-600">{{ number_format($inv->total, 0, ',', ' ') }} F</span>

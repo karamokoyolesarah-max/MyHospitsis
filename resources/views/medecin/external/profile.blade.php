@@ -14,7 +14,9 @@
             <div class="gradient-primary p-8 text-center">
                 <div class="w-24 h-24 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4 overflow-hidden relative">
                     @if($user->profile_photo_path)
-                        <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profile" class="w-full h-full object-cover">
+                        <!-- Debug: Path = {{ $user->profile_photo_path }} -->
+                        <!-- Debug: URL = {{ asset('storage/' . $user->profile_photo_path) }} -->
+                        <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="Profile" class="w-full h-full object-cover" onerror="console.log('Image failed to load')">
                     @else
                         <span class="text-3xl font-bold text-white">
                             {{ substr($user->prenom ?? 'D', 0, 1) }}{{ substr($user->nom ?? 'R', 0, 1) }}
@@ -196,6 +198,78 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- NEW: Configurations de Paiement -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mt-6">
+        <div class="p-6 border-b border-gray-100 bg-gray-50/50">
+            <h2 class="text-xl font-bold text-gray-900 flex items-center">
+                <svg class="w-6 h-6 mr-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                Configurations de Paiement
+            </h2>
+            <p class="text-xs text-gray-500 mt-1">Configurez vos numéros et QR Codes pour les paiements à domicile.</p>
+        </div>
+        
+        <form method="POST" action="{{ route('external.payment-config.update') }}" enctype="multipart/form-data" class="p-6">
+            @csrf
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                
+                @php
+                    $operators = [
+                        ['id' => 'orange', 'name' => 'Orange Money', 'color' => 'orange', 'icon' => 'mobile-alt'],
+                        ['id' => 'mtn', 'name' => 'MTN Money', 'color' => 'yellow', 'icon' => 'mobile-alt'],
+                        ['id' => 'moov', 'name' => 'Moov Money', 'color' => 'blue', 'icon' => 'mobile-alt'],
+                        ['id' => 'wave', 'name' => 'Wave', 'color' => 'cyan', 'icon' => 'water'],
+                    ];
+                @endphp
+
+                @foreach($operators as $op)
+                    <div class="space-y-4 p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="w-3 h-3 rounded-full bg-{{ $op['color'] === 'wave' ? 'blue-400' : ($op['color'] === 'mtn' ? 'yellow-400' : ($op['color'] === 'orange' ? 'orange-500' : 'blue-600')) }}"></span>
+                            <h4 class="font-bold text-sm text-gray-900">{{ $op['name'] }}</h4>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Numéro</label>
+                            <input type="text" name="payment_{{ $op['id'] }}_number" 
+                                value="{{ old('payment_'.$op['id'].'_number', $user->{'payment_'.$op['id'].'_number'}) }}" 
+                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                placeholder="+225 ...">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">QR Code</label>
+                            <div class="mt-1">
+                                @if($user->{'payment_qr_'.$op['id']})
+                                    <div class="mb-2 w-full h-32 bg-white rounded-lg border border-gray-200 p-2 flex items-center justify-center">
+                                        <img src="{{ asset('storage/' . $user->{'payment_qr_'.$op['id']}) }}" class="max-h-full object-contain">
+                                    </div>
+                                @endif
+                                <input type="file" name="qr_{{ $op['id'] }}" accept="image/*" class="block w-full text-[10px] text-gray-500
+                                    file:mr-2 file:py-1 file:px-2
+                                    file:rounded-md file:border-0
+                                    file:text-[10px] file:font-semibold
+                                    file:bg-indigo-50 file:text-indigo-700
+                                    hover:file:bg-indigo-100
+                                ">
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="flex justify-end mt-8">
+                <button type="submit" class="inline-flex items-center space-x-2 px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition shadow-lg shadow-indigo-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>Valider les configurations</span>
+                </button>
+            </div>
+        </form>
     </div>
 
 </div>

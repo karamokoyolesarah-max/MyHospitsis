@@ -10,6 +10,8 @@
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
     
+    <x-navigation-buttons :back-url="route('home')" />
+
     <div class="max-w-md w-full">
 
         <div class="bg-white rounded-2xl shadow-xl p-8">
@@ -53,21 +55,6 @@
                         <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center" id="toggle-password">
                             <i class="fas fa-eye text-gray-400 hover:text-gray-600"></i>
                         </button>
-                    </div>
-                </div>
-
-                {{-- Champ SECRET pour le Super Admin --}}
-                <div id="super-admin-field" class="mb-6 hidden">
-                    <label for="access_code" class="block text-sm font-medium text-gray-700 mb-2 text-red-600 font-bold">
-                        Code d'accès sécurisé
-                    </label>
-                    <div class="relative">
-                        <input type="password" name="access_code" id="access_code" 
-                            class="w-full px-4 py-3 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition bg-red-50"
-                            placeholder="Entrez votre code secret">
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                            <i class="fas fa-shield-alt text-red-400"></i>
-                        </div>
                     </div>
                 </div>
 
@@ -140,26 +127,7 @@
                 });
             }
 
-            // 2. Détection dynamique de l'email Super Admin
-            const identifierInput = document.getElementById('identifier');
-            const superAdminField = document.getElementById('super-admin-field');
-            const accessCodeInput = document.getElementById('access_code');
-            
-            // On récupère l'email configuré dans le .env
-            const superAdminEmail = "{{ env('SUPER_ADMIN_EMAIL') }}";
 
-            if (identifierInput && superAdminField) {
-                identifierInput.addEventListener('input', function() {
-                    // Si on tape l'email du super admin, on montre le champ code
-                    if (this.value.trim() === superAdminEmail) {
-                        superAdminField.classList.remove('hidden');
-                        accessCodeInput.required = true;
-                    } else {
-                        superAdminField.classList.add('hidden');
-                        accessCodeInput.required = false;
-                    }
-                });
-            }
         });
     </script>
 </body>

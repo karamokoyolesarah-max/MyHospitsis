@@ -1,0 +1,20 @@
+﻿  Total services: 19
+ID: 20 | Name: Cardiologie | Type: medical
+ID: 21 | Name: Radiologie & Imagerie | Type: technical
+ID: 22 | Name: Laboratoire d'Analyses | Type: technical
+ID: 23 | Name: P├®diatrie | Type: medical
+ID: 24 | Name: Gyn├®cologie & Obst├®trique | Type: medical
+ID: 25 | Name: M├®decine G├®n├®rale | Type: medical
+ID: 26 | Name: Dermatologie | Type: medical
+ID: 27 | Name: Ophtalmologie | Type: medical
+ID: 28 | Name: Chirurgie Dentaire | Type: medical
+ID: 29 | Name: Gastro-ent├®rologie | Type: medical
+ID: 30 | Name: Urgences 24h/24 | Type: medical
+ID: 31 | Name: Kin├®sith├®rapie | Type: medical
+ID: 32 | Name: Neurologie | Type: medical
+ID: 33 | Name: Urologie | Type: medical
+ID: 34 | Name: ORL | Type: medical
+ID: 35 | Name: Chirurgie G├®n├®rale | Type: medical
+ID: 36 | Name: Psychiatrie | Type: medical
+ID: 37 | Name: N├®phrologie | Type: medical
+ID: 38 | Name: Rhumatologie | Type: medical

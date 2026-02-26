@@ -28,6 +28,10 @@ class Patient extends Authenticatable
         'blood_group', 'allergies', 'medical_history', 'is_active',
         'password',
         'referring_doctor_id',
+        // Geolocalisation pour consultations a domicile
+        'latitude',
+        'longitude',
+        'formatted_address',
     ];
 
     protected $hidden = [
@@ -136,5 +140,18 @@ class Patient extends Authenticatable
     public function isExternalDoctor(): bool { return false; }
     public function isDoctorLab(): bool { return false; }
     public function isLabTechnician(): bool { return false; }
+    public function isTechnical(): bool { return false; }
+    public function isMedical(): bool { return false; }
+    public function isAdministrative(): bool { return false; }
+    public function isPharmacist(): bool { return false; }
+    public function isSecretary(): bool { return false; }
     public function hasRole($role): bool { return false; }
+
+    /**
+     * Get French label for user role (stub for Patient)
+     */
+    public function getRoleLabel(): string
+    {
+        return 'Patient';
+    }
 }

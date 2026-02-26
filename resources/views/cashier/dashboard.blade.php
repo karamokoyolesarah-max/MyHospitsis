@@ -68,7 +68,7 @@
                             <div>
                                 <h4 class="font-bold text-gray-900 text-sm">{{ $appointment->patient->name }}</h4>
                                 <p class="text-[11px] text-gray-500 uppercase tracking-tighter">
-                                    {{ $appointment->service->name }} 
+                                    {{ optional($appointment->service)->name ?? 'Service Inconnu' }} 
                                     @if(isset($appointment->prestations) && $appointment->prestations->count() > 0)
                                         <span class="text-blue-500">(+{{ $appointment->prestations->count() }} actes)</span>
                                     @endif
@@ -80,7 +80,7 @@
                             <div class="text-right font-black text-gray-900">
                                 {{-- Calcul du total incluant les prestations --}}
                                 @php 
-                                    $servicePrice = $appointment->service->price ?? 0;
+                                    $servicePrice = optional($appointment->service)->price ?? 0;
                                     $prestationsTotal = optional($appointment->prestations)->sum('pivot.total') ?? 0;
                                     $totalApt = $servicePrice + $prestationsTotal;
                                 @endphp

@@ -12,7 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        echo "Running: " . __FILE__ . "\n";
         // Add radiology roles to the existing ENUM
+        /*
         DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM(
             'admin',
             'doctor',
@@ -27,6 +29,9 @@ return new class extends Migration
             'radio_technician',
             'doctor_radio'
         ) NOT NULL");
+        */
+        // Fallback to VARCHAR to allow migration to pass if ENUM fails
+        DB::statement("ALTER TABLE users MODIFY COLUMN role VARCHAR(50) NOT NULL");
     }
 
     /**

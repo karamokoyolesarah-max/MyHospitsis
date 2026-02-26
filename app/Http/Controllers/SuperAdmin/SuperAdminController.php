@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Models\Service;
+use App\Models\Appointment;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -18,6 +19,8 @@ use App\Models\CommissionBracket;
 use App\Models\MedecinExterne;
 use App\Models\SpecialistWallet;
 use App\Models\TransactionLog;
+use App\Models\Setting;
+use Illuminate\Support\Facades\Storage;
 
 class SuperAdminController extends Controller
 {
@@ -134,11 +137,24 @@ class SuperAdminController extends Controller
         }
 
         // Statistiques dynamiques pour le dashboard
+        $pendingRecharges = \App\Models\ExternalDoctorRecharge::where('requires_manual_validation', true)
+            ->where('status', 'pending')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        $recentValidated = \App\Models\ExternalDoctorRecharge::where('requires_manual_validation', true)
+            ->whereIn('status', ['completed', 'rejected'])
+            ->orderBy('validated_at', 'desc')
+            ->take(20)
+            ->get();
+
+        $pendingRechargesCount = $pendingRecharges->total();
         $stats = [
             'active_hospitals' => $hospitals->where('is_active', true)->count(),
             'total_users' => $hospitals->sum('users_count'),
             'total_patients' => \App\Models\Patient::count(),
-            'pending_validations' => $pendingSpecialists->count(),
+            'pending_validations' => $pendingSpecialists->count() + $pendingRechargesCount,
+            'pending_wave_recharges' => $pendingRechargesCount,
             'total_saas_revenue' => (float) TransactionLog::sum('net_income'),
             'total_commissions' => (float) TransactionLog::where('description', 'like', '%commission%')->sum('net_income'),
             'monthly_saas_revenue' => (float) TransactionLog::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('net_income'),
@@ -146,8 +162,164 @@ class SuperAdminController extends Controller
             'activation_fee' => $activationFee, 
             'average_commission' => $avgCommission,
         ];
+        // Récupérer les paramètres de paiement (numéros + QR Codes)
+        $paymentSettings = Setting::where('group', 'payment')->pluck('value', 'key')->toArray();
 
-        return view('superadmin.dashboard', compact('hospitals', 'stats', 'allSpecialists', 'pendingSpecialists'));
+        // Récupérer les paiements patients (rendez-vous avec consultation terminée ou payée)
+        $patientPayments = Appointment::with(['patient', 'medecinExterne', 'doctor'])
+            ->where(function ($q) {
+                $q->whereNotNull('payment_transaction_id')
+                  ->orWhereNotNull('patient_confirmation_end_at');
+            })
+            ->orderBy('updated_at', 'desc')
+            ->take(100)
+            ->get();
+
+        return view('superadmin.dashboard', compact('hospitals', 'stats', 'allSpecialists', 'pendingSpecialists', 'pendingRecharges', 'recentValidated', 'paymentSettings', 'patientPayments'));
+    }
+
+    // === PATIENT PAYMENTS LIVE DATA (AJAX) ===
+
+    public function getPatientPaymentsData()
+    {
+        $payments = Appointment::with(['patient', 'medecinExterne', 'doctor'])
+            ->where(function ($q) {
+                $q->whereNotNull('payment_transaction_id')
+                  ->orWhereNotNull('patient_confirmation_end_at');
+            })
+            ->orderBy('updated_at', 'desc')
+            ->take(100)
+            ->get();
+
+        $confirmed = $payments->whereNotNull('payment_transaction_id');
+        $pending = $payments->whereNull('payment_transaction_id')->whereNotNull('patient_confirmation_end_at');
+
+        $rows = '';
+        foreach ($payments as $appt) {
+            $patientInitials = strtoupper(substr($appt->patient->prenom ?? 'P', 0, 1)) . strtoupper(substr($appt->patient->nom ?? '', 0, 1));
+            $patientName = $appt->patient->full_name ?? 'Patient inconnu';
+            $patientPhone = $appt->patient->phone ?? '';
+
+            $doctorHtml = '<span class="text-slate-400 text-sm">N/A</span>';
+            if ($appt->medecinExterne) {
+                $doctorHtml = '<div class="font-bold text-sm text-slate-700">Dr. ' . e($appt->medecinExterne->prenom) . ' ' . e($appt->medecinExterne->nom) . '</div><div class="text-[10px] text-slate-400">' . e($appt->medecinExterne->specialite ?? 'Généraliste') . '</div>';
+            } elseif ($appt->doctor) {
+                $doctorHtml = '<div class="font-bold text-sm text-slate-700">' . e($appt->doctor->name) . '</div><div class="text-[10px] text-slate-400">Interne</div>';
+            }
+
+            $typeHtml = $appt->consultation_type === 'home'
+                ? '<span class="inline-flex items-center gap-1 px-2 py-1 bg-purple-50 text-purple-700 rounded-lg text-[10px] font-bold uppercase"><i class="bi bi-house-door-fill"></i> Domicile</span>'
+                : '<span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded-lg text-[10px] font-bold uppercase"><i class="bi bi-hospital"></i> Hôpital</span>';
+
+            $amount = number_format($appt->total_amount ?? 0, 0, ',', ' ');
+            $method = $appt->payment_method ? '<span class="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 text-slate-700 rounded-lg text-[10px] font-bold uppercase"><i class="bi bi-phone"></i> ' . e($appt->payment_method) . '</span>' : '<span class="text-slate-300 text-xs">—</span>';
+
+            if ($appt->payment_transaction_id) {
+                $statusHtml = '<span class="inline-flex items-center gap-1 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-black uppercase"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> Payé</span>';
+            } elseif ($appt->patient_confirmation_end_at) {
+                $statusHtml = '<span class="inline-flex items-center gap-1 px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-[10px] font-black uppercase"><span class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span> En attente</span>';
+            } else {
+                $statusHtml = '<span class="inline-flex items-center gap-1 px-3 py-1 bg-slate-50 text-slate-500 rounded-full text-[10px] font-black uppercase"><span class="w-1.5 h-1.5 bg-slate-400 rounded-full"></span> En cours</span>';
+            }
+
+            $txId = $appt->payment_transaction_id
+                ? '<code class="text-[10px] bg-slate-100 px-2 py-1 rounded font-mono text-slate-600">' . e($appt->payment_transaction_id) . '</code>'
+                : '<span class="text-slate-300 text-xs">—</span>';
+
+            $date = $appt->appointment_datetime->format('d/m/Y');
+            $time = $appt->appointment_datetime->format('H:i');
+
+            $rows .= '<tr class="hover:bg-slate-50/50 transition">'
+                . '<td class="px-6 py-4"><div class="flex items-center gap-3"><div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xs font-bold">' . $patientInitials . '</div><div><div class="font-bold text-sm text-slate-900">' . e($patientName) . '</div><div class="text-[10px] text-slate-400">' . e($patientPhone) . '</div></div></div></td>'
+                . '<td class="px-6 py-4">' . $doctorHtml . '</td>'
+                . '<td class="px-6 py-4">' . $typeHtml . '</td>'
+                . '<td class="px-6 py-4"><div class="font-black text-sm text-slate-900">' . $amount . ' <span class="text-[10px] text-slate-400">FCFA</span></div></td>'
+                . '<td class="px-6 py-4">' . $method . '</td>'
+                . '<td class="px-6 py-4">' . $statusHtml . '</td>'
+                . '<td class="px-6 py-4">' . $txId . '</td>'
+                . '<td class="px-6 py-4"><div class="text-sm text-slate-700">' . $date . '</div><div class="text-[10px] text-slate-400">' . $time . '</div></td>'
+                . '</tr>';
+        }
+
+        if (empty($rows)) {
+            $rows = '<tr><td colspan="8" class="px-6 py-16 text-center"><div class="text-slate-300 text-5xl mb-4"><i class="bi bi-credit-card-2-front"></i></div><div class="font-bold text-slate-500">Aucun paiement à afficher</div></td></tr>';
+        }
+
+        return response()->json([
+            'success' => true,
+            'stats' => [
+                'confirmed' => $confirmed->count(),
+                'pending' => $pending->count(),
+                'total_amount' => number_format($confirmed->sum('total_amount'), 0, ',', ' '),
+                'monthly' => $confirmed->filter(fn($a) => $a->updated_at->month === now()->month)->count(),
+            ],
+            'html' => $rows,
+        ]);
+    }
+
+    // === SETTINGS MANAGEMENT ===
+    
+    public function updateSettings(Request $request)
+    {
+        // Validation des champs
+        $request->validate([
+            'orange_money_number' => 'nullable|string|max:20',
+            'mtn_money_number' => 'nullable|string|max:20',
+            'moov_money_number' => 'nullable|string|max:20',
+            'wave_number' => 'nullable|string|max:20',
+            'qr_orange' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'qr_mtn' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'qr_moov' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'qr_wave' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        try {
+            DB::transaction(function () use ($request) {
+                $settings = [
+                    'payment_orange_money_number' => $request->orange_money_number,
+                    'payment_mtn_money_number' => $request->mtn_money_number,
+                    'payment_moov_money_number' => $request->moov_money_number,
+                    'payment_wave_number' => $request->wave_number,
+                ];
+
+                // Traitement des uploads de QR Code
+                $qrFields = [
+                    'qr_orange' => 'payment_qr_orange',
+                    'qr_mtn' => 'payment_qr_mtn',
+                    'qr_moov' => 'payment_qr_moov',
+                    'qr_wave' => 'payment_qr_wave',
+                ];
+
+                foreach ($qrFields as $inputName => $settingKey) {
+                    if ($request->hasFile($inputName)) {
+                        // Supprimer l'ancienne image si elle existe
+                        $oldSetting = Setting::where('key', $settingKey)->first();
+                        if ($oldSetting && $oldSetting->value && Storage::disk('public')->exists($oldSetting->value)) {
+                            Storage::disk('public')->delete($oldSetting->value);
+                        }
+
+                        // Sauvegarder la nouvelle image
+                        $path = $request->file($inputName)->store('payment_qrs', 'public');
+                        $settings[$settingKey] = $path;
+                    }
+                }
+
+                foreach ($settings as $key => $value) {
+                    Setting::updateOrCreate(
+                        ['key' => $key],
+                        [
+                            'value' => $value,
+                            'group' => 'payment'
+                        ]
+                    );
+                }
+            });
+
+            return redirect()->back()->with('success', 'Configuration API de paiement mise à jour avec succès');
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Erreur lors de la mise à jour : ' . $e->getMessage());
+        }
     }
 
     // === HOSPITAL MANAGEMENT ===
@@ -356,12 +528,28 @@ class SuperAdminController extends Controller
                     'message' => 'Spécialiste validé avec succès.'
                 ]);
             } else {
-                // For rejection, we might want to delete or keep as inactive
-                // For now, let's just keep it inactive or maybe delete it
-                // $specialist->delete(); 
+                // Supprimer les fichiers uploadés du storage
+                $filesToDelete = [
+                    $specialist->diplome_path,
+                    $specialist->id_card_recto_path,
+                    $specialist->id_card_verso_path,
+                    $specialist->video_verification_path,
+                ];
+                foreach ($filesToDelete as $filePath) {
+                    if ($filePath && \Storage::disk('public')->exists($filePath)) {
+                        \Storage::disk('public')->delete($filePath);
+                    }
+                }
+
+                // Supprimer le portefeuille s'il existe
+                SpecialistWallet::where('specialist_id', $specialist->id)->delete();
+
+                // Supprimer définitivement le compte
+                $specialist->delete();
+
                 return response()->json([
                     'success' => true,
-                    'message' => 'Spécialiste rejeté.'
+                    'message' => 'Demande rejetée et compte supprimé.'
                 ]);
             }
 

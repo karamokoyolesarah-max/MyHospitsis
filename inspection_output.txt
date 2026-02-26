@@ -1,0 +1,9 @@
+Patient Found: Romaric  (ID: 34)
+
+--- Checking 'prescriptions' table ---
+Count: 1
+ID: 3 | Category: nurse | Visible: YES | Date: 2026-02-10 11:17:08
+
+--- Checking 'patient_vitals' table (ordonnance field) ---
+Vitals with Ordonnance: 1
+ID: 4 | Visible: NO | Date: 2026-02-17 09:49:45 | Length: 11

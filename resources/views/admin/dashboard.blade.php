@@ -266,6 +266,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rôle</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Pro.</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inscrit le</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -288,6 +289,17 @@
                                             @else bg-gray-100 text-gray-800 @endif">
                                             {{ ucfirst(str_replace('_', ' ', $user->role)) }}
                                         </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        @if($user->numero_ordre)
+                                            <span class="text-xs font-bold text-indigo-600">Ordre: {{ $user->numero_ordre }}</span>
+                                        @elseif($user->numero_matricule)
+                                            <span class="text-xs font-bold text-emerald-600">Matr: {{ $user->numero_matricule }}</span>
+                                        @elseif($user->numero_diplome)
+                                            <span class="text-xs font-bold text-blue-600">Dipl: {{ $user->numero_diplome }}</span>
+                                        @else
+                                            <span class="text-xs text-red-400 italic">Aucun ID</span>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-500">{{ $user->service->name ?? 'N/A' }}</div>

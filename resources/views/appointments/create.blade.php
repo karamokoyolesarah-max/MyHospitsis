@@ -67,9 +67,9 @@
 
                             {{-- CHAMP DOCTOR ID (OK) --}}
                             <div class="mb-3">
-                                <label for="doctor_id" class="form-label">Médecin <span class="text-danger">*</span></label>
+                                <label for="doctor_id" class="form-label">Médecin (Optionnel)</label>
                                 <select class="form-select @error('doctor_id') is-invalid @enderror" 
-                                        id="doctor_id" name="doctor_id" required>
+                                        id="doctor_id" name="doctor_id">
                                     <option value="">Sélectionner un médecin...</option>
                                     @foreach($doctors as $doctor)
                                         <option value="{{ $doctor->id }}" {{ old('doctor_id') == $doctor->id ? 'selected' : '' }}>

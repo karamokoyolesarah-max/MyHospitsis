@@ -71,7 +71,7 @@
             </div>
             
             <div class="nav flex-column mt-2">
-                <a href="{{ route('superadmin.dashboard') }}" class="active">
+                <a href="{{ route('superadmin.dashboard') }}" class="{{ request()->routeIs('superadmin.dashboard') ? 'active' : '' }}">
                     <i class="bi bi-grid-1x2-fill"></i> Dashboard
                 </a>
                 <a href="#">
@@ -80,7 +80,10 @@
                 <a href="#">
                     <i class="bi bi-shield-check"></i> Spécialistes
                 </a>
-                <a href="#">
+                <a href="{{ route('superadmin.dashboard', ['tab' => 'wave-validation']) }}" class="{{ request()->routeIs('superadmin.wave.index') ? 'active' : '' }}">
+                    <i class="bi bi-coin"></i> Validation Wave @if(App\Models\ExternalDoctorRecharge::where('requires_manual_validation', true)->where('status', 'pending')->count() > 0) <span class="badge bg-danger ms-auto rounded-pill">{{ App\Models\ExternalDoctorRecharge::where('requires_manual_validation', true)->where('status', 'pending')->count() }}</span> @endif
+                </a>
+                <a href="{{ route('superadmin.financial-monitoring') }}" class="{{ request()->routeIs('superadmin.financial-monitoring') ? 'active' : '' }}">
                     <i class="bi bi-credit-card-2-front"></i> Finances
                 </a>
                 
@@ -109,11 +112,32 @@
                 </div>
             </header>
 
-            @if(session('success'))
-                <div class="alert alert-success border-0 shadow-sm rounded-4 animate__animated animate__fadeIn">
-                    <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
-                </div>
-            @endif
+            @include('components.notification-sound')
+
+            <!-- Premium Floating Flash Messages -->
+            <div class="fixed-top px-3 py-3 pointer-events-none" style="z-index: 9999; left: auto; right: 0; max-width: 400px;">
+                @if(session('success'))
+                    <div class="alert alert-success border-0 shadow-lg rounded-4 animate__animated animate__fadeInRight pointer-events-auto d-flex align-items-center gap-3">
+                        <i class="bi bi-check-circle-fill fs-4"></i>
+                        <div>
+                            <strong class="d-block">Succès</strong>
+                            <small>{{ session('success') }}</small>
+                        </div>
+                        <script>window.onload = () => window.playNotificationSound();</script>
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="alert alert-danger border-0 shadow-lg rounded-4 animate__animated animate__fadeInRight pointer-events-auto d-flex align-items-center gap-3">
+                        <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                        <div>
+                            <strong class="d-block">Erreur</strong>
+                            <small>{{ session('error') }}</small>
+                        </div>
+                        <script>window.onload = () => window.playNotificationSound();</script>
+                    </div>
+                @endif
+            </div>
 
             <div class="content-body">
                 @yield('content')

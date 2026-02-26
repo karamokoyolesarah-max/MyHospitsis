@@ -83,9 +83,13 @@
                                 <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Administrateur</option>
                                 <option value="doctor" {{ old('role') == 'doctor' ? 'selected' : '' }}>Médecin</option>
                                 <option value="nurse" {{ old('role') == 'nurse' ? 'selected' : '' }}>Infirmier</option>
+                                <option value="cashier" {{ old('role') == 'cashier' ? 'selected' : '' }}>Caissier(ère)</option>
                                 <option value="lab_technician" {{ old('role') == 'lab_technician' ? 'selected' : '' }}>Technicien de Laboratoire</option>
+                                <option value="radio_technician" {{ old('role') == 'radio_technician' ? 'selected' : '' }}>Technicien Radio</option>
                                 <option value="doctor_lab" {{ old('role') == 'doctor_lab' ? 'selected' : '' }}>Médecin Biologiste</option>
                                 <option value="administrative" {{ old('role') == 'administrative' ? 'selected' : '' }}>Administratif</option>
+                                <option value="pharmacist" {{ old('role') == 'pharmacist' ? 'selected' : '' }}>Pharmacien(ne)</option>
+                                <option value="secretary" {{ old('role') == 'secretary' ? 'selected' : '' }}>Secrétaire Général(e)</option>
                             </select>
                             @error('role')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -99,6 +103,8 @@
                                 <option value="medical">🏥 Pôle de Soins (Médical)</option>
                                 <option value="technical">🔬 Pôle Technique (Diagnostic)</option>
                                 <option value="support">💳 Pôle de Caisse (Support)</option>
+                                <option value="pharmacy">💊 Pôle Pharmacie (Logistique)</option>
+                                <option value="administrative">📁 Pôle Administration (Gestion)</option>
                             </select>
                             <p class="mt-1 text-[10px] text-blue-600 font-medium italic">Sélectionnez d'abord le pôle pour voir les services correspondants.</p>
                         </div>
@@ -109,7 +115,7 @@
                                 <option value="" data-pole="all">Sélectionner un service...</option>
                                 @foreach($services as $service)
                                 <option value="{{ $service->id }}" data-pole="{{ $service->type }}" {{ old('service_id') == $service->id ? 'selected' : '' }} class="hidden">
-                                    {{ $service->name }}
+                                    {{ $service->name }} @if($service->parent) <span class="text-xs text-gray-500 italic">({{ $service->parent->name }})</span> @endif
                                 </option>
                                 @endforeach
                             </select>

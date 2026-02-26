@@ -8,6 +8,8 @@ use App\Models\{Appointment, MedicalRecord, Prescription, Invoice, PatientVital}
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\Setting;
 
 class PatientPortalController extends Controller 
 {
@@ -111,12 +113,58 @@ class PatientPortalController extends Controller
 
     return view('patients.auth.book-appointment', compact('patient', 'hospitals', 'servicesAndPrestations'));
 }
-    public function bookAppointment()
+    /**
+     * Afficher la page de sélection du type de consultation
+     */
+    public function showConsultationTypeSelector()
+    {
+        $patient = Auth::guard('patients')->user();
+        return view('portal.consultation-type-selector', compact('patient'));
+    }
+
+    /**
+     * Afficher le formulaire de rendez-vous avec type pré-sélectionné (hôpital)
+     */
+    public function bookAppointmentHospital()
+    {
+        return $this->bookAppointmentWithType('hospital');
+    }
+
+    /**
+     * Afficher le formulaire de rendez-vous avec type pré-sélectionné (domicile)
+     */
+    public function bookAppointmentHome()
+    {
+        return $this->bookAppointmentWithType('home');
+    }
+
+    /**
+     * Méthode privée pour afficher le formulaire avec un type spécifique
+     */
+    private function bookAppointmentWithType($consultationType)
     {
         $patient = Auth::guard('patients')->user();
         $hospitals = \App\Models\Hospital::where('is_active', true)->get();
 
         $hospitalsData = [];
+        $specialties = [];
+
+        if ($consultationType === 'home') {
+            // Pour le domicile, on récupère les spécialités des médecins externes actifs (en tant que chaînes)
+            $specialties = \App\Models\MedecinExterne::where('statut', 'actif')
+                ->where('is_available', true)
+                ->whereNotNull('specialite')
+                ->distinct()
+                ->pluck('specialite')
+                ->toArray();
+        } else {
+            // Pour l'hôpital, on peut utiliser les noms des services médicaux comme spécialités
+            $specialties = \App\Models\Service::where('type', 'medical')
+                ->where('is_active', true)
+                ->distinct()
+                ->pluck('name')
+                ->toArray();
+        }
 
         foreach ($hospitals as $hospital) {
             $services = \App\Models\Service::withoutGlobalScope('hospital_filter')
@@ -128,7 +176,7 @@ class PatientPortalController extends Controller
                     'id' => $s->id,
                     'name' => $s->name,
                     'price' => $s->consultation_price ?? 0
-                ]);
+                ])->toArray();
 
             $prestations = \App\Models\Prestation::withoutGlobalScope('hospital_filter')
                 ->where('hospital_id', $hospital->id)
@@ -139,7 +187,7 @@ class PatientPortalController extends Controller
                     'name' => $p->name,
                     'price' => $p->price ?? 0,
                     'service_id' => $p->service_id
-                ]);
+                ])->toArray();
 
             $hospitalsData[$hospital->id] = [
                 'services' => $services,
@@ -148,7 +196,115 @@ class PatientPortalController extends Controller
             ];
         }
 
-        return view('portal.book-appointment', compact('patient', 'hospitals', 'hospitalsData'));
+        return view('portal.book-appointment', compact('patient', 'hospitals', 'hospitalsData', 'consultationType', 'specialties'));
+    }
+
+    /**
+     * Récupérer les médecins externes par spécialité (AJAX)
+     */
+    public function getExternalDoctorsBySpecialty($specialty)
+    {
+        $doctors = \App\Models\MedecinExterne::where('specialite', $specialty)
+            ->where('statut', 'actif')
+            ->where('is_available', true)
+            ->get()
+            ->map(function($doctor) {
+                return [
+                    'id' => $doctor->id,
+                    'full_name' => $doctor->prenom . ' ' . $doctor->nom,
+                    'photo' => $doctor->profile_photo_path ? asset('storage/' . $doctor->profile_photo_path) : asset('assets/img/default-avatar.png'),
+                    'consultation_price' => $doctor->consultation_price ?? 15000,
+                    'base_travel_fee' => $doctor->base_travel_fee ?? 5000,
+                    'travel_fee_per_km' => $doctor->travel_fee_per_km ?? 500,
+                    'latitude' => $doctor->latitude,
+                    'longitude' => $doctor->longitude,
+                ];
+            });
+
+        return response()->json($doctors);
+    }
+
+    /**
+     * Récupérer les médecins internes par spécialité/service (AJAX)
+     */
+    public function getInternalDoctorsBySpecialty($specialty)
+    {
+        // On cherche le service correspondant au nom de la spécialité
+        $service = \App\Models\Service::where('name', $specialty)->first();
+        
+        $query = \App\Models\User::where('role', 'doctor')
+            ->where('is_active', true);
+
+        if ($service) {
+            $query->where('service_id', $service->id);
+        }
+
+        $doctors = $query->get()
+            ->map(function($doctor) {
+                return [
+                    'id' => $doctor->id,
+                    'full_name' => $doctor->name,
+                    'photo' => $doctor->profile_photo_path ? asset('storage/' . $doctor->profile_photo_path) : asset('assets/img/default-avatar.png'),
+                    'specialty' => $doctor->service?->name ?? 'Généraliste',
+                ];
+            });
+
+        return response()->json($doctors);
+    }
+
+    /**
+     * Géocoder une adresse et calculer les frais de déplacement (AJAX)
+     */
+    public function calculateHomeVisitFees(Request $request)
+    {
+        $request->validate([
+            'address' => 'required|string',
+            'medecin_externe_id' => 'nullable|exists:medecins_externes,id',
+            'hospital_id' => 'nullable|exists:hospitals,id'
+        ]);
+
+        $geoService = new \App\Services\GeolocationService();
+        
+        // 1. Géocoder l'adresse du patient
+        $patientGeo = $geoService->geocodeAddress($request->address);
+        
+        if (!$patientGeo) {
+            return response()->json(['error' => 'Impossible de localiser cette adresse.'], 422);
+        }
+
+        // 2. Calcul des frais
+        $consultationPrice = 0;
+        if ($request->filled('medecin_externe_id')) {
+            $doctor = \App\Models\MedecinExterne::findOrFail($request->medecin_externe_id);
+            $consultationPrice = $doctor->consultation_price ?? 15000;
+            $docLat = $doctor->latitude ?? 5.3484; 
+            $docLon = $doctor->longitude ?? -4.0305;
+            $distance = $geoService->calculateDistance($docLat, $docLon, $patientGeo['latitude'], $patientGeo['longitude']);
+            $fees = $geoService->calculateTravelFee($doctor, $distance);
+            $isInRange = $geoService->isWithinRange($doctor, $distance);
+        } else {
+            // Frais par défaut si pas de médecin sélectionné
+            $fees = [
+                'total_travel_fee' => 5000,
+                'distance_km' => 0
+            ];
+            $isInRange = true;
+        }
+
+        // 3. Calcul de la TVA et du Total
+        $subtotal = $consultationPrice + $fees['total_travel_fee'];
+        $taxRate = 0.18; // TVA 18%
+        $taxAmount = $subtotal * $taxRate;
+        $totalAmount = $subtotal + $taxAmount;
+        
+        return response()->json([
+            'patient_geo' => $patientGeo,
+            'fees' => $fees,
+            'consultation_price' => $consultationPrice,
+            'tax_amount' => round($taxAmount, 2),
+            'total_amount' => round($totalAmount, 2),
+            'is_in_range' => $isInRange
+        ]);
     }
 
 
@@ -262,7 +418,18 @@ class PatientPortalController extends Controller
 
         // On merge (ou on traite séparément si la vue est complexe)
         // Pour simplifier ici, on les passe toutes
-        $prescriptions = $realPrescriptions->concat($vitalPrescriptions)->sortByDesc('created_at');
+        $allPrescriptions = $realPrescriptions->concat($vitalPrescriptions)->sortByDesc('created_at');
+
+        // Pagination manuelle
+        $page = request()->get('page', 1);
+        $perPage = 10;
+        $prescriptions = new \Illuminate\Pagination\LengthAwarePaginator(
+            $allPrescriptions->forPage($page, $perPage),
+            $allPrescriptions->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
             
         return view('portal.prescriptions', compact('prescriptions'));
     }
@@ -348,7 +515,7 @@ class PatientPortalController extends Controller
             ->where('patient_id', $patient->id)
             ->where('is_visible_to_patient', true)
             ->where('category', '!=', 'nurse') // Sécurité supplémentaire
-            ->with(['doctor', 'hospital'])
+            ->with(['doctor', 'hospital', 'medecinExterne'])
             ->first();
 
         if ($prescription) {
@@ -385,8 +552,31 @@ class PatientPortalController extends Controller
     public function downloadInvoice($id)
     {
         $patient = Auth::guard('patients')->user();
-        $invoice = Invoice::where('patient_id', $patient->id)->findOrFail($id);
-        
+        \Log::info('Tentative de téléchargement de facture', [
+            'patient_id' => $patient?->id,
+            'invoice_id' => $id
+        ]);
+
+        if (!$patient) {
+            \Log::error('Patient non authentifié lors du téléchargement de facture');
+            abort(401);
+        }
+
+        $invoice = Invoice::where('id', $id)->first();
+        if (!$invoice) {
+            \Log::error('Facture non trouvée en base de données', ['id' => $id]);
+            abort(404, 'Facture non trouvée.');
+        }
+
+        if ($invoice->patient_id != $patient->id) {
+            \Log::warning('Tentative d\'accès à une facture d\'un autre patient', [
+                'demandeur_id' => $patient->id,
+                'proprietaire_id' => $invoice->patient_id,
+                'invoice_id' => $id
+            ]);
+            abort(403, 'Vous n\'êtes pas autorisé à accéder à cette facture.');
+        }
+
         // Return view for PDF
         return view('portal.pdf_invoice', compact('invoice', 'patient'));
     }
@@ -661,6 +851,12 @@ class PatientPortalController extends Controller
 
     public function storeAppointment(Request $request)
     {
+        // Pré-traitement pour mapper les champs _home vers les champs standards si besoin
+        if ($request->consultation_type === 'home') {
+            if ($request->has('service_id_home')) $request->merge(['service_id' => $request->service_id_home]);
+            if ($request->has('prestation_id_home')) $request->merge(['prestation_id' => $request->prestation_id_home]);
+        }
+
         $validated = $request->validate([
             'consultation_type' => 'required|in:hospital,home',
             'hospital_id' => 'required|exists:hospitals,id',
@@ -672,9 +868,25 @@ class PatientPortalController extends Controller
             'reason' => 'required|string|max:500',
             'notes' => 'nullable|string|max:1000',
             'home_address' => 'required_if:consultation_type,home|nullable|string',
+            'medecin_externe_id' => 'nullable|exists:medecins_externes,id',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'calculated_distance' => 'nullable|numeric',
+            'calculated_travel_fee' => 'nullable|numeric',
+            'tax_amount' => 'nullable|numeric',
+            'total_amount' => 'nullable|numeric',
         ]);
 
         $patient = Auth::guard('patients')->user();
+
+        // Mettre à jour la géolocalisation du patient si fournie
+        if ($request->filled('latitude') && $request->filled('longitude')) {
+            $patient->update([
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+                'formatted_address' => $request->home_address
+            ]);
+        }
 
         // Combiner date et heure
         $appointmentDateTime = $validated['appointment_date'] . ' ' . $validated['appointment_time'];
@@ -685,18 +897,23 @@ class PatientPortalController extends Controller
         // === LOGIQUE D'ASSIGNATION DU MÉDECIN ===
         $assignedDoctorId = $validated['doctor_id'] ?? null;
 
-        // On crée le rendez-vous. Si doctor_id est null, il restera en attente d'approbation.
+        // Créer le rendez-vous
         $appointment = Appointment::create([
             'patient_id' => Auth::guard('patients')->id(),
             'hospital_id' => $validated['hospital_id'],
             'service_id' => $serviceId,
-            'doctor_id' => $assignedDoctorId,
+            'doctor_id' => $assignedDoctorId, // Peut être null si non sélectionné ou si externe
+            'medecin_externe_id' => $validated['medecin_externe_id'] ?? null,
             'appointment_datetime' => $appointmentDateTime,
             'reason' => $validated['reason'],
             'notes' => $validated['notes'] ?? null,
-            'status' => 'pending', // Toujours 'pending' au début pour nécessiter approbation
+            'status' => 'pending', 
             'consultation_type' => $validated['consultation_type'],
-            'home_address' => $validated['consultation_type'] === 'home' ? $validated['home_address'] : null,
+            'home_address' => $validated['home_address'] ?? null,
+            'calculated_distance_km' => $validated['calculated_distance'] ?? null,
+            'calculated_travel_fee' => $validated['calculated_travel_fee'] ?? null,
+            'tax_amount' => $validated['tax_amount'] ?? 0,
+            'total_amount' => $validated['total_amount'] ?? 0,
         ]);
 
         // Attach the prestation if selected
@@ -708,7 +925,7 @@ class PatientPortalController extends Controller
                     'quantity' => 1,
                     'unit_price' => $prestation->price,
                     'total' => $prestation->price,
-                    'added_at' => now(), 
+                    'added_at' => now(),
                 ]);
             }
         }
@@ -716,8 +933,8 @@ class PatientPortalController extends Controller
         // ON NE CRÉE PLUS LE DOSSIER MÉDICAL ICI.
         // Il sera créé par l'infirmier après le paiement.
 
-        return redirect()->route('patient.appointments')
-            ->with('success', 'Votre demande de rendez-vous a été enregistrée. Vous serez contacté pour confirmation.');
+        return redirect()->route('patient.appointments.confirmation', $appointment->id)
+            ->with('success', 'Votre demande de rendez-vous a été enregistrée avec succès.');
     }
 
 
@@ -739,5 +956,194 @@ class PatientPortalController extends Controller
         $appointment->update(['status' => 'cancelled']);
 
         return back()->with('success', 'Votre rendez-vous a été annulé avec succès.');
+    }
+
+    /**
+     * Suivre le déplacement du médecin en temps réel
+     */
+    public function trackAppointment(Appointment $appointment)
+    {
+        $patient = Auth::guard('patients')->user();
+
+        if ($appointment->patient_id !== $patient->id) {
+            abort(403);
+        }
+
+        if ($appointment->consultation_type !== 'home') {
+            return redirect()->route('patient.appointments')->with('error', 'Le suivi n\'est disponible que pour les consultations à domicile.');
+        }
+
+        $appointment->load(['medecinExterne', 'patient']);
+
+        return view('portal.track-appointment', compact('appointment'));
+    }
+
+    /**
+     * API pour récupérer les données de suivi en temps réel
+     */
+    public function getTrackingData(Appointment $appointment)
+    {
+        $patient = Auth::guard('patients')->user();
+
+        if ($appointment->patient_id !== $patient->id) {
+            return response()->json(['error' => 'Non autorisé'], 403);
+        }
+
+        return response()->json([
+            'status' => $appointment->status,
+            'doctor_location' => [
+                'lat' => (float)$appointment->doctor_current_latitude,
+                'lng' => (float)$appointment->doctor_current_longitude,
+            ],
+            'estimated_arrival_time' => $appointment->estimated_arrival_time ? $appointment->estimated_arrival_time->format('H:i') : null,
+            'distance_km' => $appointment->calculated_distance_km,
+        ]);
+    }
+
+    public function confirmStart(Appointment $appointment)
+    {
+        $patient = Auth::guard('patients')->user();
+        if ($appointment->patient_id !== $patient->id) abort(403);
+        
+        $appointment->update([
+            'patient_confirmation_start_at' => now(),
+        ]);
+        
+        return back()->with('success', 'Début de consultation confirmé.');
+    }
+
+    public function confirmEnd(Appointment $appointment)
+    {
+        $patient = Auth::guard('patients')->user();
+         if ($appointment->patient_id !== $patient->id) abort(403);
+
+        $appointment->update([
+            'patient_confirmation_end_at' => now(),
+            'status' => 'completed' 
+        ]);
+        
+        return back()->with('success', 'Fin de consultation confirmée.');
+    }
+
+    public function confirmPayment(Appointment $appointment)
+    {
+        $patient = Auth::guard('patients')->user();
+        if ($appointment->patient_id !== $patient->id) abort(403);
+
+        // Ensure consultation is completed and not yet paid
+        if (!$appointment->patient_confirmation_end_at || $appointment->payment_transaction_id) {
+            return back()->with('error', 'Paiement non autorisé pour ce rendez-vous.');
+        }
+
+        // Update payment status (using a placeholder transaction ID until actual integration)
+        $transactionId = 'MANUAL_' . strtoupper(uniqid());
+        $appointment->update([
+            'payment_transaction_id' => $transactionId,
+            'payment_method' => 'mobile_money',
+        ]);
+
+        // Send notification to the external doctor
+        if ($appointment->medecinExterne) {
+            $appointment->medecinExterne->notify(
+                new \App\Notifications\PaymentConfirmedNotification(
+                    $appointment,
+                    $patient->full_name,
+                    $appointment->total_amount ?? 0
+                )
+            );
+        }
+
+        // Send notification to SuperAdmin (assuming User with role 'admin' or 'super_admin')
+        $superAdmins = \App\Models\User::where('role', 'admin')->get();
+        foreach ($superAdmins as $admin) {
+            $admin->notify(
+                new \App\Notifications\PaymentConfirmedNotification(
+                    $appointment,
+                    $patient->full_name,
+                    $appointment->total_amount ?? 0
+                )
+            );
+        }
+        
+        return back()->with('success', 'Paiement confirmé ! Le médecin et l\'administration ont été notifiés.');
+    }
+
+    public function rateDoctor(Request $request, Appointment $appointment)
+    {
+         $patient = Auth::guard('patients')->user();
+         if ($appointment->patient_id !== $patient->id) abort(403);
+         
+         $validated = $request->validate([
+             'rating' => 'required|integer|min:1|max:5',
+             'comment' => 'nullable|string|max:500'
+         ]);
+         
+         $appointment->update([
+             'rating_stars' => $validated['rating'],
+             'rating_comment' => $validated['comment']
+         ]);
+         
+         return back()->with('success', 'Merci pour votre avis !');
+    }
+
+    /**
+     * Afficher la page de confirmation et de paiement après la prise de rendez-vous.
+     */
+    public function showConfirmation(Appointment $appointment)
+    {
+        // Vérifier que le rendez-vous appartient au patient connecté
+        if ($appointment->patient_id !== Auth::guard('patients')->id()) {
+            abort(403);
+        }
+
+        $appointment->load(['hospital', 'service', 'prestations', 'medecinExterne', 'doctor']);
+
+        // Récupérer les paramètres de paiement (numéros + QR Codes) spécifiques à l'hôpital
+        $hospital = $appointment->hospital;
+        $paymentSettings = [
+            'payment_orange_money_number' => $hospital->payment_orange_number,
+            'payment_mtn_money_number' => $hospital->payment_mtn_number,
+            'payment_moov_money_number' => $hospital->payment_moov_number,
+            'payment_wave_number' => $hospital->payment_wave_number,
+            'payment_qr_orange' => $hospital->payment_qr_orange,
+            'payment_qr_mtn' => $hospital->payment_qr_mtn,
+            'payment_qr_moov' => $hospital->payment_qr_moov,
+            'payment_qr_wave' => $hospital->payment_qr_wave,
+        ];
+
+        // Fallback optionnel : si l'hôpital n'a rien configuré, on peut charger les settings globaux
+        // Mais ici l'utilisateur demande explicitement ceux de l'admin de l'hôpital.
+        if (empty(array_filter($paymentSettings))) {
+            $globalSettings = Setting::where('group', 'payment')->pluck('value', 'key')->toArray();
+            $paymentSettings = array_merge($globalSettings, array_filter($paymentSettings));
+        }
+
+        return view('portal.appointment-confirmation', compact('appointment', 'paymentSettings'));
+    }
+
+    /**
+     * Télécharger le bon de consultation / facture proforma en PDF.
+     */
+    public function downloadAppointmentBill(Appointment $appointment)
+    {
+        // Vérifier que le rendez-vous appartient au patient connecté
+        if ($appointment->patient_id !== Auth::guard('patients')->id()) {
+            abort(403);
+        }
+
+        // Restriction : la facture n'est téléchargeable qu'après paiement (transaction ID présent)
+        if (!$appointment->payment_transaction_id) {
+            return back()->with('error', 'Le reçu de paiement sera disponible une fois le règlement validé.');
+        }
+
+        $appointment->load(['hospital', 'service', 'prestations', 'medecinExterne', 'doctor', 'patient']);
+
+        $pdf = Pdf::loadView('portal.pdf_appointment_bill', [
+            'appointment' => $appointment,
+            'hospital' => $appointment->hospital,
+            'patient' => $appointment->patient,
+        ]);
+
+        return $pdf->download('recu-paiement-' . $appointment->id . '.pdf');
     }
 }

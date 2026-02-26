@@ -8,6 +8,8 @@
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
     
+    <x-navigation-buttons :back-url="route('hospital.login', $hospital->slug)" />
+
     <div class="max-w-md w-full py-8">
         {{-- En-tête (Logo & Titre) --}}
         <div class="text-center mb-8">

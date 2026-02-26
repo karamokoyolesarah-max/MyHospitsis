@@ -9,6 +9,7 @@ use App\Models\PatientVital;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class MedicalRecordController extends Controller
 {
@@ -47,6 +48,12 @@ class MedicalRecordController extends Controller
     public function archivesIndex()
     {
         $records = PatientVital::where('status', 'archived')
+            ->whereIn('id', function($query) {
+                $query->selectRaw('MAX(id)')
+                    ->from('patient_vitals')
+                    ->where('status', 'archived')
+                    ->groupBy('patient_ipu');
+            })
             ->with(['doctor', 'patient', 'service'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -131,6 +138,10 @@ public function update(Request $request, $id)
 
     // ÉTAPE CRUCIALE : On écrase les anciennes données (le fameux 37°C)
     // par ce que l'infirmier a tapé ($validatedData)
+    if ($request->has('meta')) {
+        $record->update(['meta' => $request->meta]);
+    }
+    
     $record->update($validatedData);
 
     // REMOVED: Auto-creation of duplicate PatientVital was creating unwanted records
@@ -344,5 +355,22 @@ public function update(Request $request, $id)
         return redirect()->back()
             ->with('success', 'Le dossier médical a été supprimé avec succès.');
     }
+    public function downloadPdf($id)
+{
+    $record = PatientVital::with(['patient', 'user', 'service'])->findOrFail($id);
     
+    // Si l'utilisateur est un médecin externe, on récupère ses infos
+    $doctor = $record->user;
+    
+    // Si ce n'est pas un utilisateur classique, on cherche si c'est un externe lié via le patient/RDV
+    // (Note: Dans une version future, on pourra ajouter medecin_externe_id direct sur patient_vitals)
+    if (!$doctor && Auth::guard('medecin_externe')->check()) {
+        $doctor = Auth::guard('medecin_externe')->user();
+    }
+    
+    $pdf = Pdf::loadView('pdf.medical_record_pdf', compact('record', 'doctor'));
+    
+    $filename = str_replace(' ', '_', $record->patient_name) . '_' . date('Ymd') . '.pdf';
+    return $pdf->download($filename);
+}
 }

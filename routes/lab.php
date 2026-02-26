@@ -8,18 +8,24 @@ Route::middleware(['auth', 'active_user', 'role:lab_technician'])->group(functio
     Route::get('/lab/worklist', [LabRequestController::class, 'worklist'])->name('lab.worklist');
     Route::get('/lab/history', [LabRequestController::class, 'history'])->name('lab.history');
     Route::get('/lab/inventory', [LabRequestController::class, 'inventory'])->name('lab.inventory.index');
+    Route::post('/lab/inventory', [\App\Http\Controllers\LabInventoryController::class, 'store'])->name('lab.inventory.store');
+    Route::put('/lab/inventory/{labInventory}', [\App\Http\Controllers\LabInventoryController::class, 'update'])->name('lab.inventory.update');
+    Route::delete('/lab/inventory/{labInventory}', [\App\Http\Controllers\LabInventoryController::class, 'destroy'])->name('lab.inventory.destroy');
     
     // Actions
     Route::post('/lab/requests/{lab_request}/status', [LabRequestController::class, 'updateStatus'])->name('lab.requests.status');
     Route::post('/lab/requests/{lab_request}/result', [LabRequestController::class, 'submitResult'])->name('lab.requests.result');
+    Route::get('/lab/requests/{lab_request}/print', [LabRequestController::class, 'print'])->name('lab.requests.print');
 });
 
-Route::middleware(['auth', 'active_user', 'role:doctor_lab'])->group(function () {
+Route::middleware(['auth', 'active_user', 'role:doctor_lab,doctor,medecin,internal_doctor'])->group(function () {
     Route::get('/lab/biologist/dashboard', [LabRequestController::class, 'biologistDashboard'])->name('lab.biologist.dashboard');
     Route::get('/lab/biologist/validation', [LabRequestController::class, 'validationList'])->name('lab.biologist.validation');
+    Route::get('/lab/biologist/history', [LabRequestController::class, 'history'])->name('lab.biologist.history'); // Reuse controller method
     Route::get('/lab/biologist/stats', [LabRequestController::class, 'biologistStats'])->name('lab.biologist.stats');
     Route::post('/lab/requests/{lab_request}/validate', [LabRequestController::class, 'validateResult'])->name('lab.requests.validate');
     Route::post('/lab/requests/{lab_request}/update-result', [LabRequestController::class, 'updateResult'])->name('lab.requests.update_result');
+    Route::get('/lab/requests/{lab_request}/print', [LabRequestController::class, 'print'])->name('lab.requests.print');
 });
 
 Route::middleware(['auth', 'active_user', 'role:doctor_radio'])->group(function () {

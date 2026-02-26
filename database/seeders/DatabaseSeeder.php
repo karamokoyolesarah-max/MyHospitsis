@@ -203,6 +203,9 @@ class DatabaseSeeder extends Seeder
     ]);
 
     $this->command->info('✅ Dossier de constantes créé pour Ange.');
+
+    // Seed Laboratory Services (after hospitals and basic services)
+    $this->call(LaboratoryServicesSeeder::class);
 }
 
 /**

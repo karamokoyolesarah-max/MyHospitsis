@@ -6,64 +6,77 @@
     <title>Mon Profil - {{ $patient->full_name }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.3); }
+        .nav-link.active { color: #2563eb; border-bottom-color: #2563eb; background-color: #eff6ff; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-[#f8fafc] text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-700">
     
-    <!-- Header -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <!-- Navbar Premium -->
+    <nav class="glass sticky top-0 z-50 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
+            <div class="flex justify-between items-center h-20">
+                <!-- User Profile Summary -->
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('patient.dashboard') }}" class="text-gray-600 hover:text-gray-900">
-                        <i class="fas fa-arrow-left text-xl"></i>
+                    <a href="{{ route('patient.dashboard') }}" class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition">
+                        <i class="fas fa-arrow-left"></i>
                     </a>
-                    <h1 class="text-lg font-bold text-gray-900">Mon Profil</h1>
+                    <h1 class="text-lg font-black text-slate-900 tracking-tight">Mon Profil</h1>
                 </div>
-                <form method="POST" action="{{ route('patient.logout') }}">
-                    @csrf
-                    <button type="submit" class="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition">
-                        <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
-                    </button>
-                </form>
+                
+                <!-- Right Actions -->
+                <div class="flex items-center space-x-4">
+                    <form method="POST" action="{{ route('patient.logout') }}">
+                        @csrf
+                        <button type="submit" class="flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-bold text-red-600 hover:bg-red-50 transition">
+                            <i class="fas fa-power-off"></i>
+                            <span class="hidden md:inline">Déconnexion</span>
+                        </button>
+                    </form>
+                </div>
             </div>
-        </div>
-    </header>
-
-    <!-- Navigation Tabs -->
-    <nav class="bg-white border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex space-x-8 overflow-x-auto scrollbar-hide">
-                <a href="{{ route('patient.dashboard') }}" class="py-4 px-1 border-b-2 border-transparent text-gray-600 hover:text-gray-900 whitespace-nowrap text-sm">
-                    <i class="fas fa-home mr-2"></i>Tableau de bord
+            
+            <!-- Navigation Links -->
+            <div class="flex space-x-1 overflow-x-auto scrollbar-hide pb-1">
+                <a href="{{ route('patient.dashboard') }}" class="nav-link flex items-center px-4 py-3 text-sm font-bold text-slate-500 border-b-2 border-transparent rounded-t-xl hover:text-indigo-600 transition whitespace-nowrap">
+                    <i class="fas fa-th-large mr-2.5"></i>Tableau de bord
                 </a>
-                <a href="{{ route('patient.profile') }}" class="py-4 px-1 border-b-2 border-blue-600 text-blue-600 font-medium whitespace-nowrap text-sm">
-                    <i class="fas fa-user mr-2"></i>Mon profil
+                <a href="{{ route('patient.appointments') }}" class="nav-link flex items-center px-4 py-3 text-sm font-bold text-slate-500 border-b-2 border-transparent rounded-t-xl hover:text-indigo-600 transition whitespace-nowrap">
+                    <i class="fas fa-calendar-check mr-2.5"></i>Rendez-vous
                 </a>
-                <a href="{{ route('patient.appointments') }}" class="py-4 px-1 border-b-2 border-transparent text-gray-600 hover:text-gray-900 whitespace-nowrap text-sm">
-                    <i class="fas fa-calendar-alt mr-2"></i>Rendez-vous
+                <a href="{{ route('patient.medical-history') }}" class="nav-link flex items-center px-4 py-3 text-sm font-bold text-slate-500 border-b-2 border-transparent rounded-t-xl hover:text-indigo-600 transition whitespace-nowrap">
+                    <i class="fas fa-file-medical-alt mr-2.5"></i>Dossier Médical
                 </a>
-                <a href="{{ route('patient.prescriptions') }}" class="py-4 px-1 border-b-2 border-transparent text-gray-600 hover:text-gray-900 whitespace-nowrap text-sm">
-                    <i class="fas fa-prescription mr-2"></i>Ordonnances
+                <a href="{{ route('patient.prescriptions') }}" class="nav-link flex items-center px-4 py-3 text-sm font-bold text-slate-500 border-b-2 border-transparent rounded-t-xl hover:text-indigo-600 transition whitespace-nowrap">
+                    <i class="fas fa-pills mr-2.5"></i>Ordonnances
+                </a>
+                <a href="{{ route('patient.profile') }}" class="nav-link active flex items-center px-4 py-3 text-sm font-bold text-slate-500 border-b-2 border-transparent rounded-t-xl hover:text-indigo-600 transition whitespace-nowrap">
+                    <i class="fas fa-user-circle mr-2.5"></i>Profil
                 </a>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
         <!-- Messages -->
         @if(session('success'))
-            <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-800 rounded-lg flex items-center">
-                <i class="fas fa-check-circle text-green-500 mr-3 text-xl"></i>
-                <span>{{ session('success') }}</span>
+            <div class="p-4 bg-emerald-50 border border-emerald-100 text-emerald-800 rounded-2xl flex items-center shadow-sm animate-in fade-in slide-in-from-top-2">
+                <i class="fas fa-check-circle text-emerald-500 mr-3 text-xl"></i>
+                <span class="font-bold">{{ session('success') }}</span>
             </div>
         @endif
 
         @if($errors->any())
-            <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-800 rounded-lg">
+            <div class="p-4 bg-rose-50 border border-rose-100 text-rose-800 rounded-2xl animate-in fade-in slide-in-from-top-2">
                 <div class="flex items-start">
-                    <i class="fas fa-exclamation-circle text-red-500 mr-3 text-xl mt-1"></i>
-                    <ul class="list-disc list-inside">
+                    <i class="fas fa-exclamation-circle text-rose-500 mr-3 text-xl mt-1"></i>
+                    <ul class="list-disc list-inside font-medium text-sm">
                         @foreach($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach
@@ -72,129 +85,134 @@
             </div>
         @endif
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <!-- Colonne Latérale - Carte Identité -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-md p-6 text-center">
-                    <div class="bg-gradient-to-br from-blue-500 to-blue-700 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <span class="text-white font-bold text-4xl">{{ substr($patient->first_name, 0, 1) }}</span>
-                    </div>
-                    <h2 class="text-xl font-bold text-gray-900 mb-1">{{ $patient->full_name }}</h2>
-                    <p class="text-sm text-gray-500 mb-4">IPU: {{ $patient->ipu }}</p>
+            <!-- Sidebar / Identity Card (4 columns) -->
+            <div class="lg:col-span-4 space-y-6">
+                <!-- Main Identity Card -->
+                <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8 text-center relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-indigo-500 to-purple-600 opacity-10"></div>
                     
-                    <div class="space-y-3 text-left mt-6">
-                        <div class="flex items-center text-sm">
-                            <i class="fas fa-birthday-cake text-blue-600 w-5 mr-3"></i>
-                            <span class="text-gray-700">{{ $patient->age }} ans</span>
+                    <div class="relative z-10">
+                        <div class="w-32 h-32 mx-auto rounded-[2rem] bg-white p-1 mb-4 shadow-xl shadow-indigo-100">
+                            <div class="w-full h-full rounded-[1.8rem] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-5xl">
+                                {{ substr($patient->first_name, 0, 1) }}
+                            </div>
                         </div>
-                        <div class="flex items-center text-sm">
-                            <i class="fas fa-venus-mars text-blue-600 w-5 mr-3"></i>
-                            <span class="text-gray-700">{{ $patient->gender === 'Homme' ? 'Masculin' : ($patient->gender === 'Femme' ? 'Féminin' : 'Autre') }}</span>
-                        </div>
-                        @if($patient->blood_group)
-                        <div class="flex items-center text-sm">
-                            <i class="fas fa-tint text-red-600 w-5 mr-3"></i>
-                            <span class="text-gray-700">Groupe {{ $patient->blood_group }}</span>
-                        </div>
-                        @endif
-                        <div class="flex items-center text-sm">
-                            <i class="fas fa-calendar text-blue-600 w-5 mr-3"></i>
-                            <span class="text-gray-700">Membre depuis {{ $patient->created_at->format('Y') }}</span>
+                        <h2 class="text-2xl font-black text-slate-900 leading-tight">{{ $patient->full_name }}</h2>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">IPU: {{ $patient->ipu }}</p>
+
+                        <div class="mt-8 space-y-4">
+                            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                <div class="flex items-center text-slate-500">
+                                    <i class="fas fa-birthday-cake mr-3 w-5 text-center"></i>
+                                    <span class="text-sm font-bold">Âge</span>
+                                </div>
+                                <span class="text-sm font-bold text-slate-900">{{ $patient->age }} ans</span>
+                            </div>
+                            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                <div class="flex items-center text-slate-500">
+                                    <i class="fas fa-venus-mars mr-3 w-5 text-center"></i>
+                                    <span class="text-sm font-bold">Genre</span>
+                                </div>
+                                <span class="text-sm font-bold text-slate-900">{{ $patient->gender === 'M' ? 'Masculin' : ($patient->gender === 'F' ? 'Féminin' : 'Autre') }}</span>
+                            </div>
+                            @if($patient->blood_group)
+                            <div class="flex items-center justify-between p-4 bg-rose-50 rounded-2xl border border-rose-100">
+                                <div class="flex items-center text-rose-500">
+                                    <i class="fas fa-tint mr-3 w-5 text-center"></i>
+                                    <span class="text-sm font-bold">Groupe Sanguin</span>
+                                </div>
+                                <span class="text-sm font-black text-rose-900">{{ $patient->blood_group }}</span>
+                            </div>
+                            @endif
+                            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                <div class="flex items-center text-slate-500">
+                                    <i class="fas fa-calendar mr-3 w-5 text-center"></i>
+                                    <span class="text-sm font-bold">Membre depuis</span>
+                                </div>
+                                <span class="text-sm font-bold text-slate-900">{{ $patient->created_at->format('Y') }}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Carte Sécurité -->
-                <div class="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-5 mt-6">
+                <!-- Security Info -->
+                <div class="bg-emerald-50 rounded-[2.5rem] p-8 border border-emerald-100">
                     <div class="flex items-start">
-                        <i class="fas fa-shield-alt text-yellow-600 text-xl mr-3 mt-1"></i>
+                        <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mr-4 shadow-sm flex-shrink-0">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
                         <div>
-                            <h4 class="font-semibold text-gray-900 mb-2">Sécurité</h4>
-                            <p class="text-xs text-gray-700">
-                                Vos données sont protégées et conformes aux normes de confidentialité médicale.
+                            <h4 class="font-bold text-emerald-900 text-sm">Données Protégées</h4>
+                            <p class="text-xs font-medium text-emerald-700/80 mt-1 leading-relaxed">
+                                Vos informations médicales sont chiffrées de bout en bout et stockées conformément aux normes HDS.
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Colonne Principale - Formulaire -->
-            <div class="lg:col-span-2">
-                <form method="POST" action="{{ route('patient.profile.update') }}" class="space-y-6">
+            <!-- Main Form (8 columns) -->
+            <div class="lg:col-span-8">
+                <form method="POST" action="{{ route('patient.profile.update') }}" class="space-y-8">
                     @csrf
                     @method('PUT')
 
-                    <!-- Section Informations Personnelles -->
-                    <div class="bg-white rounded-xl shadow-md p-6">
-                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                            <i class="fas fa-user-circle text-blue-600 mr-3"></i>
-                            Informations personnelles
-                        </h3>
+                    <!-- Personal Info Section -->
+                    <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
+                        <div class="flex items-center space-x-4 mb-8">
+                            <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 text-xl">
+                                <i class="fas fa-id-card"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-black text-slate-900">Identité</h3>
+                                <p class="text-slate-400 text-sm font-medium">Informations administratives</p>
+                            </div>
+                        </div>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Nom</label>
-                                <input 
-                                    type="text" 
-                                    value="{{ $patient->name }}" 
-                                    disabled
-                                    class="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
-                                >
-                                <p class="mt-1 text-xs text-gray-500">
-                                    <i class="fas fa-lock mr-1"></i>Non modifiable
-                                </p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Nom de famille</label>
+                                <div class="relative">
+                                    <input type="text" value="{{ $patient->name }}" disabled class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-500 cursor-not-allowed">
+                                    <i class="fas fa-lock absolute right-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                                </div>
                             </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Prénom</label>
-                                <input 
-                                    type="text" 
-                                    value="{{ $patient->first_name }}" 
-                                    disabled
-                                    class="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
-                                >
-                                <p class="mt-1 text-xs text-gray-500">
-                                    <i class="fas fa-lock mr-1"></i>Non modifiable
-                                </p>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Prénoms</label>
+                                <div class="relative">
+                                    <input type="text" value="{{ $patient->first_name }}" disabled class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-500 cursor-not-allowed">
+                                    <i class="fas fa-lock absolute right-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                                </div>
                             </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Date de naissance</label>
-                                <input 
-                                    type="text" 
-                                    value="{{ $patient->dob->format('d/m/Y') }}" 
-                                    disabled
-                                    class="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
-                                >
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Date de naissance</label>
+                                <input type="text" value="{{ $patient->dob->format('d/m/Y') }}" disabled class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-500 cursor-not-allowed">
                             </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">IPU</label>
-                                <input 
-                                    type="text" 
-                                    value="{{ $patient->ipu }}" 
-                                    disabled
-                                    class="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
-                                >
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Numéro IPU</label>
+                                <input type="text" value="{{ $patient->ipu }}" disabled class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-500 cursor-not-allowed">
                             </div>
                         </div>
                     </div>
 
                     <!-- Section Informations Médicales -->
-                    <div class="bg-white rounded-xl shadow-md p-6">
-                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                            <i class="fas fa-file-medical text-red-600 mr-3"></i>
-                            Informations médicales
-                        </h3>
-                        
-                        <div class="space-y-4">
+                    <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
+                        <div class="flex items-center space-x-4 mb-8">
+                            <div class="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500 text-xl">
+                                <i class="fas fa-file-medical"></i>
+                            </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Groupe sanguin</label>
-                                <select 
-                                    name="blood_group" 
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                >
+                                <h3 class="text-xl font-black text-slate-900">Médical</h3>
+                                <p class="text-slate-400 text-sm font-medium">Informations de santé</p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Groupe sanguin</label>
+                                <select name="blood_group" class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all outline-none">
                                     <option value="">Sélectionnez votre groupe sanguin</option>
                                     @foreach(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as $group)
                                         <option value="{{ $group }}" {{ old('blood_group', $patient->blood_group) == $group ? 'selected' : '' }}>
@@ -204,194 +222,126 @@
                                 </select>
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-allergies mr-2"></i>Allergies
-                                </label>
-                                <textarea 
-                                    name="allergies" 
-                                    rows="2"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="Ex: Pénicilline, Arachides... (Séparez par des virgules)"
-                                >{{ old('allergies', is_array($patient->allergies) ? implode(', ', $patient->allergies) : $patient->allergies) }}</textarea>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Allergies</label>
+                                <textarea name="allergies" rows="2" class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all outline-none resize-none" placeholder="Ex: Pénicilline, Arachides...">{{ old('allergies', is_array($patient->allergies) ? implode(', ', $patient->allergies) : $patient->allergies) }}</textarea>
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-history mr-2"></i>Antécédents médicaux
-                                </label>
-                                <textarea 
-                                    name="medical_history" 
-                                    rows="3"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="Vos antécédents médicaux ou chirurgicaux importants"
-                                >{{ old('medical_history', $patient->medical_history) }}</textarea>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Antécédents médicaux</label>
+                                <textarea name="medical_history" rows="3" class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all outline-none resize-none" placeholder="Vos antécédents médicaux ou chirurgicaux importants">{{ old('medical_history', $patient->medical_history) }}</textarea>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Section Contact -->
-                    <div class="bg-white rounded-xl shadow-md p-6">
-                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                            <i class="fas fa-address-book text-green-600 mr-3"></i>
-                            Informations de contact
-                        </h3>
-                        
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-envelope mr-2"></i>Email *
-                                </label>
-                                <input 
-                                    type="email" 
-                                    name="email" 
-                                    value="{{ old('email', $patient->email) }}" 
-                                    required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                >
+                    <!-- Contact Details Section -->
+                    <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
+                        <div class="flex items-center space-x-4 mb-8">
+                            <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 text-xl">
+                                <i class="fas fa-map-marked-alt"></i>
                             </div>
-
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-phone mr-2"></i>Téléphone *
-                                </label>
-                                <input 
-                                    type="tel" 
-                                    name="phone" 
-                                    value="{{ old('phone', $patient->phone) }}" 
-                                    required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                >
+                                <h3 class="text-xl font-black text-slate-900">Coordonnées</h3>
+                                <p class="text-slate-400 text-sm font-medium">Pour vous contacter</p>
                             </div>
+                        </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-map-marker-alt mr-2"></i>Adresse
-                                </label>
-                                <textarea 
-                                    name="address" 
-                                    rows="2"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                >{{ old('address', $patient->address) }}</textarea>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Ville</label>
-                                    <input 
-                                        type="text" 
-                                        name="city" 
-                                        value="{{ old('city', $patient->city) }}"
-                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    >
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Email</label>
+                                    <input type="email" name="email" value="{{ old('email', $patient->email) }}" required
+                                        class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all outline-none">
                                 </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Téléphone</label>
+                                    <input type="tel" name="phone" value="{{ old('phone', $patient->phone) }}" required
+                                        class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all outline-none">
+                                </div>
+                            </div>
 
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Code postal</label>
-                                    <input 
-                                        type="text" 
-                                        name="postal_code" 
-                                        value="{{ old('postal_code', $patient->postal_code) }}"
-                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    >
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Adresse de résidence</label>
+                                <textarea name="address" rows="2"
+                                    class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all outline-none resize-none">{{ old('address', $patient->address) }}</textarea>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Ville</label>
+                                    <input type="text" name="city" value="{{ old('city', $patient->city) }}"
+                                        class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all outline-none">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Code Postal</label>
+                                    <input type="text" name="postal_code" value="{{ old('postal_code', $patient->postal_code) }}"
+                                        class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all outline-none">
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Section Contacts d'Urgence -->
-                    <div class="bg-white rounded-xl shadow-md p-6">
-                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                            <i class="fas fa-ambulance text-red-600 mr-3"></i>
-                            Contact d'urgence
-                        </h3>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-user mr-2"></i>Nom du contact
-                                </label>
-                                <input 
-                                    type="text" 
-                                    name="emergency_contact_name" 
-                                    value="{{ old('emergency_contact_name', $patient->emergency_contact_name) }}"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="Nom de la personne à contacter"
-                                >
+                    <!-- Emergency Contact -->
+                    <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
+                        <div class="flex items-center space-x-4 mb-8">
+                            <div class="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500 text-xl">
+                                <i class="fas fa-heart-pulse"></i>
                             </div>
-
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-phone-alt mr-2"></i>Téléphone d'urgence
-                                </label>
-                                <input 
-                                    type="tel" 
-                                    name="emergency_contact_phone" 
-                                    value="{{ old('emergency_contact_phone', $patient->emergency_contact_phone) }}"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="+225 XX XX XX XX XX"
-                                >
+                                <h3 class="text-xl font-black text-slate-900">Urgence</h3>
+                                <p class="text-slate-400 text-sm font-medium">Personne à prévenir</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Nom complet</label>
+                                <input type="text" name="emergency_contact_name" value="{{ old('emergency_contact_name', $patient->emergency_contact_name) }}"
+                                    class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 focus:bg-white transition-all outline-none" placeholder="Ex: Jean Kouassi (Père)">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Téléphone</label>
+                                <input type="tel" name="emergency_contact_phone" value="{{ old('emergency_contact_phone', $patient->emergency_contact_phone) }}"
+                                    class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 focus:bg-white transition-all outline-none" placeholder="+225...">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Section Sécurité - Changer le mot de passe -->
-                    <div class="bg-white rounded-xl shadow-md p-6">
-                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                            <i class="fas fa-key text-yellow-600 mr-3"></i>
-                            Changer le mot de passe
-                        </h3>
-                        
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-lock mr-2"></i>Nouveau mot de passe
-                                </label>
-                                <input 
-                                    type="password" 
-                                    name="password" 
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="Laisser vide pour ne pas changer"
-                                >
-                                <p class="mt-1 text-xs text-gray-500">
-                                    <i class="fas fa-info-circle mr-1"></i>
-                                    Minimum 8 caractères
-                                </p>
+                    <!-- Security Section -->
+                    <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
+                        <div class="flex items-center space-x-4 mb-8">
+                            <div class="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 text-xl">
+                                <i class="fas fa-lock"></i>
                             </div>
-
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-lock mr-2"></i>Confirmer le mot de passe
-                                </label>
-                                <input 
-                                    type="password" 
-                                    name="password_confirmation" 
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="Retapez le mot de passe"
-                                >
+                                <h3 class="text-xl font-black text-slate-900">Mot de passe</h3>
+                                <p class="text-slate-400 text-sm font-medium">Sécurisez votre compte</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Nouveau mot de passe</label>
+                                <input type="password" name="password" 
+                                    class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 focus:bg-white transition-all outline-none" placeholder="••••••••">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Confirmer</label>
+                                <input type="password" name="password_confirmation" 
+                                    class="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-900 focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 focus:bg-white transition-all outline-none" placeholder="••••••••">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Bouton de Soumission -->
-                    <div class="flex items-center justify-end space-x-4">
-                        <a 
-                            href="{{ route('patient.dashboard') }}" 
-                            class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
-                        >
-                            <i class="fas fa-times mr-2"></i>Annuler
-                        </a>
-                        <button 
-                            type="submit" 
-                            class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold shadow-md"
-                        >
-                            <i class="fas fa-save mr-2"></i>Enregistrer les modifications
+                    <!-- Actions -->
+                    <div class="flex justify-end pt-4 pb-12">
+                        <button type="submit" class="px-10 py-5 bg-slate-900 text-white rounded-[1.5rem] font-bold shadow-xl shadow-slate-300 hover:bg-black hover:-translate-y-1 transition-all duration-300 flex items-center">
+                            <i class="fas fa-save mr-3"></i> Enregistrer les modifications
                         </button>
                     </div>
 
                 </form>
             </div>
-
         </div>
 
     </main>

@@ -61,6 +61,46 @@
                         <div class="text-[10px] text-slate-400 uppercase font-black tracking-tighter">Session Active</div>
                         <div class="font-bold text-slate-900 leading-tight">{{ Auth::guard('superadmin')->user()->name ?? 'Super Admin' }}</div>
                     </div>
+
+                    <!-- Notifications dropdown -->
+                    <div class="relative">
+                        <button id="saNotificationsBtn" onclick="toggleSANotifications()" class="relative p-2 rounded-md hover:bg-slate-100">
+                            <i class="bi bi-bell text-2xl text-slate-600"></i>
+                            @php $unread = Auth::guard('superadmin')->user() ? Auth::guard('superadmin')->user()->unreadNotifications()->count() : 0; @endphp
+                            @if($unread > 0)
+                                <span class="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full px-2">{{ $unread }}</span>
+                            @endif
+                        </button>
+
+                        <div id="saNotificationsPanel" class="hidden absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden z-50">
+                            <div class="p-4 border-b border-slate-100 font-bold">Notifications</div>
+                            <div class="max-h-64 overflow-y-auto">
+                                @if(Auth::guard('superadmin')->user())
+                                    @foreach(Auth::guard('superadmin')->user()->notifications()->latest()->take(20)->get() as $note)
+                                        @php 
+                                            $notifyUrl = route('superadmin.dashboard');
+                                            $rechargeData = $note->data['recharge'] ?? null;
+                                            if ($rechargeData && isset($rechargeData['payment_method']) && $rechargeData['payment_method'] === 'wave') {
+                                                $notifyUrl = route('superadmin.dashboard', ['tab' => 'wave-validation']);
+                                            }
+                                        @endphp
+                                        <a href="{{ $notifyUrl }}" class="block p-3 hover:bg-slate-50 border-b border-slate-100">
+                                            <div class="text-sm text-slate-700 font-bold">{{ $rechargeData['user_name'] ?? 'Nouvel événement' }}</div>
+                                            <div class="text-xs text-slate-400">
+                                                {{ number_format($rechargeData['amount'] ?? 0, 0, ',', ' ') }} FCFA • 
+                                                <span class="uppercase">{{ $rechargeData['payment_method'] ?? '' }}</span> • 
+                                                {{ \Carbon\Carbon::parse($note->created_at)->diffForHumans() }}
+                                            </div>
+                                        </a>
+                                    @endforeach
+                                @endif
+                                @if(!Auth::guard('superadmin')->user() || Auth::guard('superadmin')->user()->notifications()->count() === 0)
+                                    <div class="p-4 text-sm text-slate-500">Aucune notification</div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="bg-gradient-to-tr from-blue-600 to-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg shadow-lg rotate-3 hover:rotate-0 transition-transform duration-300">
                         SA
                     </div>
@@ -84,11 +124,17 @@
                 <button onclick="switchTab('subscription-plans')" id="btn-subscription-plans" class="tab-btn flex items-center gap-2 px-6 py-4 font-bold text-sm text-slate-500 hover:text-blue-600 hover:bg-slate-50 transition-all whitespace-nowrap">
                     <i class="bi bi-credit-card-2-back-fill"></i> Catalogue Forfaits
                 </button>
+                <button onclick="switchTab('wave-validation')" id="btn-wave-validation" class="tab-btn flex items-center gap-2 px-6 py-4 font-bold text-sm text-slate-500 hover:text-blue-600 hover:bg-slate-50 transition-all whitespace-nowrap">
+                    <i class="bi bi-coin"></i> Validation <span translate="no">Wave</span> @if($stats['pending_wave_recharges'] > 0) <span class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">{{ $stats['pending_wave_recharges'] }}</span> @endif
+                </button>
                 <button onclick="switchTab('commission-rates')" id="btn-commission-rates" class="tab-btn flex items-center gap-2 px-6 py-4 font-bold text-sm text-slate-500 hover:text-blue-600 hover:bg-slate-50 transition-all whitespace-nowrap">
                     <i class="bi bi-gear-fill"></i> Commissions Spécialistes
                 </button>
                 <button onclick="switchTab('financial-monitoring')" id="btn-financial-monitoring" class="tab-btn flex items-center gap-2 px-6 py-4 font-bold text-sm text-slate-500 hover:text-blue-600 hover:bg-slate-50 transition-all whitespace-nowrap">
                     <i class="bi bi-graph-up"></i> Monitoring & Portefeuilles
+                </button>
+                <button onclick="switchTab('patient-payments')" id="btn-patient-payments" class="tab-btn flex items-center gap-2 px-6 py-4 font-bold text-sm text-slate-500 hover:text-blue-600 hover:bg-slate-50 transition-all whitespace-nowrap">
+                    <i class="bi bi-credit-card-2-front"></i> Paiements Patients
                 </button>
                 <button onclick="switchTab('profile')" id="btn-profile" class="tab-btn flex items-center gap-2 px-6 py-4 font-bold text-sm text-slate-500 hover:text-blue-600 hover:bg-slate-50 transition-all whitespace-nowrap">
                     <i class="bi bi-person-circle"></i> Mon Profil
@@ -128,8 +174,18 @@
 
         @include('superadmin.tabs.financial-monitoring')
         @include('superadmin.tabs.profile')
+        @include('superadmin.tabs.wave-validation')
+        @include('superadmin.tabs.patient-payments')
 
     </div>
+
+    <script>
+        function toggleSANotifications() {
+            const panel = document.getElementById('saNotificationsPanel');
+            if (!panel) return;
+            panel.classList.toggle('hidden');
+        }
+    </script>
 
     <!-- Modal Installation Hôpital -->
     <div id="installModal" class="fixed inset-0 bg-black/70 backdrop-blur-md hidden z-50 flex items-center justify-center p-6 animate-in fade-in duration-300">
@@ -453,6 +509,10 @@
                 // Load data for specific tabs
                 if (tabId === 'financial-monitoring') {
                     refreshFinancialData();
+                }
+                
+                if (tabId === 'wave-validation') {
+                    // No dynamic loading needed yet as it's passed via controller
                 }
 
                 // Feedback Haptique Visuel (Scroll au top lors du changement d'onglet)
@@ -1492,6 +1552,13 @@
 
             // Initialize features preview
             updateFeaturesPreview();
+
+            // Handle initial tab from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialTab = urlParams.get('tab');
+            if (initialTab) {
+                switchTab(initialTab);
+            }
 
             // Initialize commission brackets
             addCommissionBracket('0', '15000', '15');

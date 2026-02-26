@@ -8,6 +8,9 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    
+    <x-navigation-buttons :back-url="route('select-portal')" />
+
     <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-md w-full space-y-8">
             {{-- En-tête --}}
@@ -89,12 +92,6 @@
                     </div>
                 </div>
 
-                {{-- Lien retour --}}
-                <div class="mt-6 text-center">
-                    <a href="{{ route('home') }}" class="text-sm text-blue-600 hover:text-blue-500">
-                        <i class="fas fa-arrow-left mr-1"></i>
-                        Retour à l'accueil
-                    </a>
                 </div>
             </div>
 

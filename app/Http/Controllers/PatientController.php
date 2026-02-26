@@ -239,7 +239,7 @@ class PatientController extends Controller
 
         // Charger toutes les données médicales
         $patient->load([
-            'medicalRecords' => fn($q) => $q->with('recordedBy')->latest('record_datetime'),
+            'medicalRecords' => fn($q) => $q->with('recordedBy')->latest(),
             'prescriptions' => fn($q) => $q->with('doctor')->latest(),
             'clinicalObservations' => fn($q) => $q->with('user')->latest('observation_datetime'),
             'documents' => fn($q) => $q->where('is_validated', true)->latest(),
@@ -282,8 +282,9 @@ class PatientController extends Controller
             ];
         }));
     }
-    public function archive(\App\Models\Patient $patient)
-{
+    public function archive($id)
+    {
+        $patient = \App\Models\Patient::withTrashed()->withoutGlobalScopes()->findOrFail($id);
     DB::beginTransaction();
     try {
         // 1. Récupérer TOUS les PatientVitals actifs (non archivés)
@@ -343,8 +344,9 @@ class PatientController extends Controller
     }
  } 
 
- public function showArchives(Patient $patient)
+ public function showArchives($id)
  {
+    $patient = \App\Models\Patient::withTrashed()->withoutGlobalScopes()->findOrFail($id);
     // Récupérer TOUS les PatientVitals archivés du patient
     $archivedVitals = \App\Models\PatientVital::where('patient_ipu', $patient->ipu)
         ->where('status', 'archived')

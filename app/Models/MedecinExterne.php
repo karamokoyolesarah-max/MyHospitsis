@@ -24,6 +24,7 @@ class MedecinExterne extends Authenticatable
         'diplome_path',
         'id_card_recto_path',
         'id_card_verso_path',
+        'profile_photo_path',
         'password',
         'statut',
         'email_verified_at',
@@ -32,7 +33,30 @@ class MedecinExterne extends Authenticatable
         'balance',
         'current_plan',
         'plan_expires_at',
+        // Geolocalisation et tarification
+        'latitude',
+        'longitude',
+        'travel_fee_type',
+        'base_travel_fee',
+        'travel_fee_per_km',
+        'max_travel_distance',
+        'consultation_price',
+        'specialty_id',
+        // Payment Info
+        'payment_orange_number',
+        'payment_mtn_number',
+        'payment_moov_number',
+        'payment_wave_number',
+        'payment_qr_orange',
+        'payment_qr_mtn',
+        'payment_qr_moov',
+        'payment_qr_wave',
     ];
+
+    public function specialty()
+    {
+        return $this->belongsTo(Specialty::class, 'specialty_id');
+    }
 
     protected $hidden = [
         'password',

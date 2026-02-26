@@ -110,17 +110,14 @@
             <div class="mb-6 p-4 bg-gray-50 border border-gray-100 rounded-xl">
                 <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Actions rapides</h4>
                 <div class="flex items-center gap-3">
-                    
-                    {{-- Bouton Partager (Vert) --}}
-                    <form action="{{ route('medical_records.share', $record->id) }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" title="Partager au patient" class="w-10 h-10 flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-md transition-all active:scale-90">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="22" y1="2" x2="11" y2="13"></line>
-                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                            </svg>
-                        </button>
-                    </form>
+                    {{-- Bouton PDF (Indigo) --}}
+                    <a href="{{ route('medical-records.pdf', $record->id) }}" title="Télécharger PDF" class="w-10 h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-md transition-all active:scale-90">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                    </a>
 
                     {{-- Bouton Modifier (Bleu) --}}
                     <a href="#formulaire-constantes" title="Modifier dans le carnet" class="w-10 h-10 flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition-all active:scale-90">
@@ -265,6 +262,33 @@
                 </div>
 
                 <hr class="border-gray-100 my-6">
+
+                {{-- FICHES SPÉCIALISÉES --}}
+                @php
+                    $serviceCode = $record->service ? strtoupper(strtok($record->service->code, '-')) : null;
+                    $ficheMapping = [
+                        'GYNE' => 'grossesse',
+                        'CARD' => 'cardio',
+                        'PED' => 'pediatrie',
+                        'RHUM' => 'nutrition',
+                        'PSY' => 'psycho',
+                        'URG' => 'urgence',
+                        'GEN' => 'generic',
+                        'CERT' => 'certificat',
+                        'ORD' => 'ordonnance',
+                        'REF' => 'referral',
+                        'EXT' => 'generic',
+                    ];
+                    
+                    $ficheName = $ficheMapping[$serviceCode] ?? 'generic';
+                    $meta = $record->meta ?? [];
+                @endphp
+
+                @if($ficheName)
+                    <div class="mb-6">
+                        @include('medical_records.fiches.' . $ficheName, ['meta' => $meta])
+                    </div>
+                @endif
 
                 {{-- ESPACE PRESCRIPTION & DIAGNOSTIC DYNAMIQUE --}}
                 <div class="bg-{{ $config['color'] }}-50 p-6 rounded-xl border border-{{ $config['color'] }}-100 space-y-4 shadow-inner">

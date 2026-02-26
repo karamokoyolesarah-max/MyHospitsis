@@ -115,6 +115,22 @@ Route::middleware(['auth:superadmin', 'superadmin.verified'])->prefix('admin-sys
     Route::get('/invoices', [SuperAdminController::class, 'getInvoices'])
         ->name('superadmin.invoices.index');
 
+    // === WAVE VALIDATION MANAGEMENT ===
+    Route::get('/wave-validation', [\App\Http\Controllers\SuperAdmin\WaveValidationController::class, 'index'])
+        ->name('superadmin.wave.index');
+    Route::post('/wave-validation/{recharge}/validate', [\App\Http\Controllers\SuperAdmin\WaveValidationController::class, 'approve'])
+        ->name('superadmin.wave.validate');
+    Route::post('/wave-validation/{recharge}/reject', [\App\Http\Controllers\SuperAdmin\WaveValidationController::class, 'reject'])
+        ->name('superadmin.wave.reject');
+
+    // === PATIENT PAYMENTS TRACKING ===
+    Route::get('/patient-payments/data', [SuperAdminController::class, 'getPatientPaymentsData'])
+        ->name('superadmin.patient-payments.data');
+
+    // === SETTINGS ===
+    Route::post('/settings', [SuperAdminController::class, 'updateSettings'])
+        ->name('superadmin.settings.update');
+
     // Déconnexion
     Route::post('/logout', [SuperAdminController::class, 'logout'])
         ->name('superadmin.logout');

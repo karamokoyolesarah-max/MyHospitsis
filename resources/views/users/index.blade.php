@@ -43,7 +43,10 @@
                             <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Administrateur</option>
                             <option value="doctor" {{ request('role') == 'doctor' ? 'selected' : '' }}>Médecin</option>
                             <option value="nurse" {{ request('role') == 'nurse' ? 'selected' : '' }}>Infirmier</option>
-                            <option value="lab_technician" {{ request('role') == 'lab_technician' ? 'selected' : '' }}>Technicien Labo</option>
+                            <option value="lab_technician" {{ request('role') == 'lab_technician' ? 'selected' : '' }}>Technicien Spécialisé</option>
+                            <option value="cashier" {{ request('role') == 'cashier' ? 'selected' : '' }}>Caissier</option>
+                            <option value="pharmacist" {{ request('role') == 'pharmacist' ? 'selected' : '' }}>Pharmacien</option>
+                            <option value="secretary" {{ request('role') == 'secretary' ? 'selected' : '' }}>Secrétariat</option>
                             <option value="administrative" {{ request('role') == 'administrative' ? 'selected' : '' }}>Staff Administratif</option>
                         </select>
                     </div>

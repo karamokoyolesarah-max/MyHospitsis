@@ -35,6 +35,7 @@ class LabRequest extends Model
         'completed_at',
         'validated_at',
         'is_visible_to_patient',
+        'medecin_externe_id',
     ];
 
     protected $casts = [
@@ -53,6 +54,22 @@ class LabRequest extends Model
     public function doctor()
     {
         return $this->belongsTo(User::class, 'doctor_id');
+    }
+
+    public function medecinExterne()
+    {
+        return $this->belongsTo(MedecinExterne::class, 'medecin_externe_id');
+    }
+
+    public function getDoctorNameAttribute(): string
+    {
+        if ($this->medecinExterne) {
+            return 'Dr ' . $this->medecinExterne->prenom . ' ' . $this->medecinExterne->nom;
+        }
+        if ($this->doctor) {
+            return 'Dr ' . $this->doctor->name;
+        }
+        return 'Médecin inconnu';
     }
 
     public function service()

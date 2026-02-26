@@ -19,7 +19,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold">HospitISIS</h1>
-                    <p class="text-pink-100 text-xs">{{ auth()->user()?->role === 'nurse' ? 'Infirmière' : 'Infirmier' }} - {{ auth()->user()?->name ?? 'User' }}</p>
+                    <p class="text-pink-100 text-xs">{{ auth()->user()?->role === 'nurse' ? 'Infirmière' : 'Infirmier' }} - {{ auth()->user()?->name ?? 'User' }} | Service : {{ auth()->user()->service->name ?? 'Général/Urgence' }}</p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -566,7 +566,7 @@
                 <template x-if="formConfig && formConfig.length > 0">
                     <div class="mt-6 p-4 bg-orange-50 border border-orange-100 rounded-xl space-y-4">
                         <h3 class="text-sm font-bold text-orange-800 uppercase flex items-center gap-2">
-                            <i data-lucide="custom-vitals" class="w-4 h-4"></i> Signes Spécifiques : <span x-text="'{{ auth()->user()->service->name ?? '' }}'"></span>
+                            <i data-lucide="custom-vitals" class="w-4 h-4"></i> Signes Spécifiques : <span x-text="'{{ auth()->user()->service->name ?? 'Général' }}'"></span>
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <template x-for="field in formConfig" :key="field.name">
@@ -678,17 +678,17 @@ function nurseDashboard() {
             @foreach($appointments as $apt)
             {
                 id: {{ $apt->id }},
-                patientName: '{{ $apt->patient->name }}',
-                patientId: '{{ $apt->patient->ipu }}',
-                age: {{ \Carbon\Carbon::parse($apt->patient->dob)->age }},
-                date: '{{ \Carbon\Carbon::parse($apt->appointment_datetime)->format('d/m/Y') }}',
-                time: '{{ $apt->appointment_datetime->format('H:i') }}',
-                reason: '{{ $apt->reason }}',
-                doctor: '{{ $apt->doctor ? $apt->doctor->name : "N/A" }}',
-                serviceName: '{{ $apt->prestations->pluck("name")->implode(", ") ?: $apt->service?->name }}',
-                blood_group: '{{ $apt->patient->blood_group }}',
-                allergies: {!! json_encode(is_array($apt->patient->allergies) ? implode(", ", $apt->patient->allergies) : $apt->patient->allergies) !!},
-                medical_history: {!! json_encode($apt->patient->medical_history) !!},
+                patientName: {!! json_encode($apt->patient?->name ?? 'Patient Inconnu') !!},
+                patientId: {!! json_encode($apt->patient?->ipu ?? 'N/A') !!},
+                age: {{ $apt->patient ? \Carbon\Carbon::parse($apt->patient->dob)->age : 0 }},
+                date: {!! json_encode(\Carbon\Carbon::parse($apt->appointment_datetime)->format('d/m/Y')) !!},
+                time: {!! json_encode($apt->appointment_datetime->format('H:i')) !!},
+                reason: {!! json_encode($apt->reason) !!},
+                doctor: {!! json_encode($apt->doctor ? $apt->doctor->name : "N/A") !!},
+                serviceName: {!! json_encode($apt->prestations->pluck("name")->implode(", ") ?: $apt->service?->name) !!},
+                blood_group: {!! json_encode($apt->patient?->blood_group ?? 'N/A') !!},
+                allergies: {!! json_encode($apt->patient ? (is_array($apt->patient->allergies) ? implode(", ", $apt->patient->allergies) : $apt->patient->allergies) : '') !!},
+                medical_history: {!! json_encode($apt->patient?->medical_history ?? '') !!},
                 status: 'pending'
             },
             @endforeach
@@ -698,11 +698,11 @@ function nurseDashboard() {
             @foreach($sentFiles as $file)
             {
                 id: {{ $file->id }},
-                patient_id: {{ $file->patient->id ?? 'null' }},
-                patientName: '{{ $file->patient_name }}',
-                reason: '{{ $file->reason }}',
-                sentAt: '{{ $file->created_at->format('H:i') }}',
-                assignedDoctor: '{{ $file->doctor ? "Dr. " . $file->doctor->name : "Non assigné" }}',
+                patient_id: {{ $file->patient?->id ?? 'null' }},
+                patientName: {!! json_encode($file->patient_name) !!},
+                reason: {!! json_encode($file->reason) !!},
+                sentAt: {!! json_encode($file->created_at->format('H:i')) !!},
+                assignedDoctor: {!! json_encode($file->doctor ? "Dr. " . $file->doctor->name : "Non assigné") !!},
                 status: '{{ $file->status }}'
             },
             @endforeach
@@ -713,14 +713,14 @@ function nurseDashboard() {
             @foreach($walkIns as $w)
             { 
                id: 'walkin_{{ $w->id }}', 
-               name: '{{ $w->patient->name }} {{ $w->patient->first_name }}', 
-               ipu: '{{ $w->patient->ipu }}', 
-               age: {{ $w->patient->age }}, 
-               bloodType: '{{ $w->patient->blood_group }}',
-               allergies: {!! json_encode(is_array($w->patient->allergies) ? implode(", ", $w->patient->allergies) : $w->patient->allergies) !!},
-               medical_history: {!! json_encode($w->patient->medical_history) !!},
-               reason: '{{ $w->reason }}',
-               serviceName: '{{ $w->prestations->pluck("name")->implode(", ") ?: $w->service?->name }}',
+               name: {!! json_encode(($w->patient?->name ?? 'Inconnu') . " " . ($w->patient?->first_name ?? '')) !!}, 
+               ipu: {!! json_encode($w->patient?->ipu ?? 'N/A') !!}, 
+               age: {{ $w->patient?->age ?? 0 }}, 
+               bloodType: {!! json_encode($w->patient?->blood_group ?? 'N/A') !!},
+               allergies: {!! json_encode($w->patient ? (is_array($w->patient->allergies) ? implode(", ", $w->patient->allergies) : $w->patient->allergies) : '') !!},
+               medical_history: {!! json_encode($w->patient?->medical_history ?? '') !!},
+               reason: {!! json_encode($w->reason) !!},
+               serviceName: {!! json_encode($w->prestations->pluck("name")->implode(", ") ?: $w->service?->name) !!},
                isWalkIn: true,
                hasAppointment: false 
             },
@@ -730,10 +730,10 @@ function nurseDashboard() {
             @foreach($patientsWithoutApt as $p)
             { 
                id: {{ $p->id }}, 
-               name: '{{ $p->name }} {{ $p->first_name }}', 
-               ipu: '{{ $p->ipu }}', 
-               age: {{ $p->age }}, 
-               bloodType: '{{ $p->blood_group }}',
+               name: {!! json_encode(($p->name ?? 'Inconnu') . " " . ($p->first_name ?? '')) !!}, 
+               ipu: {!! json_encode($p->ipu ?? 'N/A') !!}, 
+               age: {{ $p->age ?? 0 }}, 
+               bloodType: {!! json_encode($p->blood_group ?? 'N/A') !!},
                allergies: {!! json_encode(is_array($p->allergies) ? implode(", ", $p->allergies) : $p->allergies) !!},
                medical_history: {!! json_encode($p->medical_history) !!},
                reason: '',
@@ -749,31 +749,31 @@ function nurseDashboard() {
             { 
                 id: {{ $admission->id }}, 
                 patient_id: {{ $admission->patient_id }},
-                name: '{{ $admission->patient->name }} {{ $admission->patient->first_name }}', 
-                ipu: '{{ $admission->patient->ipu }}', 
-                age: {{ $admission->patient->age }}, 
-                bloodType: '{{ $admission->patient->blood_group }}',
-                allergies: {!! json_encode(is_array($admission->patient->allergies) ? implode(", ", $admission->patient->allergies) : $admission->patient->allergies) !!},
-                medical_history: {!! json_encode($admission->patient->medical_history) !!},
-                reason: '{{ $admission->admission_reason }}',
-                room: '{{ $admission->room ? $admission->room->room_number : "" }}',
+                name: {!! json_encode(($admission->patient?->name ?? 'Inconnu') . " " . ($admission->patient?->first_name ?? '')) !!}, 
+                ipu: {!! json_encode($admission->patient?->ipu ?? 'N/A') !!}, 
+                age: {{ $admission->patient?->age ?? 0 }}, 
+                bloodType: {!! json_encode($admission->patient?->blood_group ?? 'N/A') !!},
+                allergies: {!! json_encode($admission->patient ? (is_array($admission->patient->allergies) ? implode(", ", $admission->patient->allergies) : $admission->patient->allergies) : '') !!},
+                medical_history: {!! json_encode($admission->patient?->medical_history ?? '') !!},
+                reason: {!! json_encode($admission->admission_reason) !!},
+                room: {!! json_encode($admission->room ? $admission->room->room_number : "") !!},
                 vitals: {
-                    temp: '{{ $signes?->temperature ?? "--" }}',
-                    pulse: '{{ $signes?->pulse ?? "--" }}',
-                    weight: '{{ $signes?->weight ?? "--" }}',
-                    height: '{{ $signes?->height ?? "--" }}',
-                    bp: '{{ $signes?->blood_pressure ?? "--" }}',
-                    last_check: '{{ $signes?->created_at?->format("H:i") ?? "N/A" }}',
-                    status: '{{ $signes?->status ?? "none" }}'
+                    temp: {!! json_encode($signes?->temperature ?? "--") !!},
+                    pulse: {!! json_encode($signes?->pulse ?? "--") !!},
+                    weight: {!! json_encode($signes?->weight ?? "--") !!},
+                    height: {!! json_encode($signes?->height ?? "--") !!},
+                    bp: {!! json_encode($signes?->blood_pressure ?? "--") !!},
+                    last_check: {!! json_encode($signes?->created_at?->format("H:i") ?? "N/A") !!},
+                    status: {!! json_encode($signes?->status ?? "none") !!}
                 },
                 prescriptions: [
                     @foreach($admission->patient->prescriptions as $presc)
                     {
                         id: {{ $presc->id }},
-                        medication: '{{ $presc->medication }}',
-                        dosage: '{{ $presc->dosage }}',
-                        frequency: '{{ $presc->frequency }}',
-                        date: '{{ $presc->created_at->format("d/m H:i") }}'
+                        medication: {!! json_encode($presc->medication) !!},
+                        dosage: {!! json_encode($presc->dosage) !!},
+                        frequency: {!! json_encode($presc->frequency) !!},
+                        date: {!! json_encode($presc->created_at->format("d/m H:i")) !!}
                     },
                     @endforeach
                 ],
@@ -792,7 +792,7 @@ function nurseDashboard() {
             custom_vitals: {}
         },
 
-        formConfig: {!! json_encode(auth()->user()->service->form_config ?? []) !!},
+        formConfig: {!! json_encode(auth()->user()->service?->form_config ?? []) !!},
 
         newPatientData: { name: '', age: '', bloodType: '' },
 

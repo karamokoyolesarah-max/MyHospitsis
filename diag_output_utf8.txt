@@ -1,0 +1,10 @@
+﻿--- Invoices with ID 21 ---
+
+--- Invoices with Number 21 ---
+
+--- Patient with ID 36 (Gaston) ---
+Array
+(
+    [id] => 36
+    [email] => Gaston@gmail.com
+)

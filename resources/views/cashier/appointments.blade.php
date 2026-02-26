@@ -73,7 +73,7 @@
                     @forelse($appointments as $apt)
                         @php 
                             $montantPrestations = $apt->prestations->sum('pivot.total');
-                            $totalGeneral = ($apt->service->price ?? 0) + $montantPrestations;
+                            $totalGeneral = (optional($apt->service)->price ?? 0) + $montantPrestations;
                             $paidInvoice = $apt->invoices->firstWhere('status', 'paid');
                             $isPaid = $apt->status == 'paid' || $paidInvoice;
                             $displayInvoice = $paidInvoice ?? $apt->invoices->first();

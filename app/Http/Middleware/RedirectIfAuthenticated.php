@@ -28,6 +28,11 @@ class RedirectIfAuthenticated
                     return redirect()->route('patient.dashboard');
                 }
 
+                // Gestion spécifique pour les médecins externes
+                if ($guard === 'medecin_externe') {
+                    return redirect()->route('external.doctor.external.dashboard');
+                }
+
                 // Pour le guard 'web' (User standard)
                 // Redirection selon le rôle
                 return match($user->role ?? null) {

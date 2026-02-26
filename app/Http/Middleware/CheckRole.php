@@ -45,8 +45,28 @@ class CheckRole
         }
 
         // 4. Vérification si le rôle de l'utilisateur est dans la liste des rôles autorisés
-        if (in_array($user->role, $allowedRoles)) {
-            return $next($request);
+        $userRole = strtolower($user->role);
+        foreach ($allowedRoles as $role) {
+            // Correspondance directe
+            if ($userRole === $role) return $next($request);
+            
+            // Unification Docteur/Médecin
+            if (in_array($userRole, ['doctor', 'medecin']) && in_array($role, ['doctor', 'medecin'])) {
+                return $next($request);
+            }
+
+            // Accès Pôle Technique pour les médecins génériques
+            if (in_array($userRole, ['doctor', 'medecin']) && $user->isTechnical()) {
+                // Un médecin dans un pôle technique peut accéder aux rôles doctor_lab, doctor_radio, etc.
+                if (str_contains($role, 'lab') || str_contains($role, 'radio') || str_contains($role, 'biologiste')) {
+                    return $next($request);
+                }
+            }
+            
+            // Accès Pôle Technique pour les techniciens (si applicable)
+            if (str_contains($userRole, 'technician') && (str_contains($role, 'lab') || str_contains($role, 'radio'))) {
+                 return $next($request);
+            }
         }
 
         // 5. Rôle non autorisé

@@ -43,6 +43,8 @@
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
     
+    <x-navigation-buttons :back-url="route('home')" />
+
     <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
@@ -57,10 +59,6 @@
                 </div>
 
                 <div class="flex items-center gap-4">
-                    <a href="{{ route('home') }}" class="text-slate-600 hover:text-slate-800 font-semibold transition-colors flex items-center gap-2">
-                        <i class="fas fa-arrow-left text-sm"></i>
-                        Retour
-                    </a>
                 </div>
             </div>
         </div>

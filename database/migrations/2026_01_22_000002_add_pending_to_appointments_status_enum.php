@@ -13,7 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         // Add 'pending' to the allowed status values
-        DB::statement("ALTER TABLE appointments MODIFY COLUMN status ENUM('scheduled', 'confirmed', 'cancelled', 'completed', 'prepared', 'pending_payment', 'paid', 'released', 'pending') DEFAULT 'scheduled'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE appointments MODIFY COLUMN status ENUM('scheduled', 'confirmed', 'cancelled', 'completed', 'prepared', 'pending_payment', 'paid', 'released', 'pending') DEFAULT 'scheduled'");
+        }
     }
 
     /**
@@ -23,7 +25,9 @@ return new class extends Migration
     {
         // Revert to previous enum values (warning: 'pending' values might cause issues if not handled)
         // In a real scenario, we might want to change them to 'scheduled' before reverting.
-        DB::statement("UPDATE appointments SET status = 'scheduled' WHERE status = 'pending'");
-        DB::statement("ALTER TABLE appointments MODIFY COLUMN status ENUM('scheduled', 'confirmed', 'cancelled', 'completed', 'prepared', 'pending_payment', 'paid', 'released') DEFAULT 'scheduled'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("UPDATE appointments SET status = 'scheduled' WHERE status = 'pending'");
+            DB::statement("ALTER TABLE appointments MODIFY COLUMN status ENUM('scheduled', 'confirmed', 'cancelled', 'completed', 'prepared', 'pending_payment', 'paid', 'released') DEFAULT 'scheduled'");
+        }
     }
 };

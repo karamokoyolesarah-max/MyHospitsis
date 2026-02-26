@@ -90,10 +90,13 @@
                                 <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Administrateur</option>
                                 <option value="doctor" {{ old('role', $user->role) == 'doctor' ? 'selected' : '' }}>Médecin</option>
                                 <option value="nurse" {{ old('role', $user->role) == 'nurse' ? 'selected' : '' }}>Infirmier</option>
+                                <option value="cashier" {{ old('role', $user->role) == 'cashier' ? 'selected' : '' }}>Caissier(ère)</option>
                                 <option value="lab_technician" {{ old('role', $user->role) == 'lab_technician' ? 'selected' : '' }}>Technicien de Laboratoire</option>
+                                <option value="radio_technician" {{ old('role', $user->role) == 'radio_technician' ? 'selected' : '' }}>Technicien Radio</option>
                                 <option value="doctor_lab" {{ old('role', $user->role) == 'doctor_lab' ? 'selected' : '' }}>Médecin Biologiste</option>
-                                <option value="cashier" {{ old('role', $user->role) == 'cashier' ? 'selected' : '' }}>Caissier</option>
                                 <option value="administrative" {{ old('role', $user->role) == 'administrative' ? 'selected' : '' }}>Administratif</option>
+                                <option value="pharmacist" {{ old('role', $user->role) == 'pharmacist' ? 'selected' : '' }}>Pharmacien(ne)</option>
+                                <option value="secretary" {{ old('role', $user->role) == 'secretary' ? 'selected' : '' }}>Secrétaire Général(e)</option>
                             </select>
                             @error('role')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -107,6 +110,8 @@
                                 <option value="medical" {{ ($user->service && $user->service->type === 'medical') ? 'selected' : '' }}>🏥 Pôle de Soins (Médical)</option>
                                 <option value="technical" {{ ($user->service && $user->service->type === 'technical') ? 'selected' : '' }}>🔬 Pôle Technique (Diagnostic)</option>
                                 <option value="support" {{ ($user->service && $user->service->type === 'support') ? 'selected' : '' }}>💳 Pôle de Caisse (Support)</option>
+                                <option value="pharmacy" {{ ($user->service && $user->service->type === 'pharmacy') ? 'selected' : '' }}>💊 Pôle Pharmacie (Logistique)</option>
+                                <option value="administrative" {{ ($user->service && $user->service->type === 'administrative') ? 'selected' : '' }}>📁 Pôle Administration (Gestion)</option>
                             </select>
                         </div>
 
@@ -116,7 +121,7 @@
                                 <option value="" data-pole="all">Sélectionner un service...</option>
                                 @foreach($services as $service)
                                 <option value="{{ $service->id }}" data-pole="{{ $service->type }}" {{ old('service_id', $user->service_id) == $service->id ? 'selected' : '' }} class="hidden">
-                                    {{ $service->name }}
+                                    {{ $service->name }} @if($service->parent) <span class="text-xs text-gray-500 italic">({{ $service->parent->name }})</span> @endif
                                 </option>
                                 @endforeach
                             </select>

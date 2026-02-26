@@ -31,6 +31,7 @@ class AuditLog extends Model
 
     public $timestamps = true;
     const UPDATED_AT = null;
+
     /**
      * Log an audit event
      */

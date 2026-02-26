@@ -66,6 +66,51 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Vérification Professionnelle -->
+            <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
+                <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 rounded-t-[2.5rem]">
+                    <h4 class="text-base font-black text-white flex items-center gap-2">
+                        <i class="bi bi-person-check-fill"></i> Vérification Pro.
+                    </h4>
+                </div>
+                <div class="p-6 space-y-3">
+                    <p class="text-xs text-slate-500 mb-3 font-medium">Portails officiels pour vérifier les praticiens :</p>
+
+                    <a href="https://www.ordremedecins.ci/" target="_blank"
+                       class="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl hover:bg-indigo-50 transition-colors border border-slate-200 hover:border-indigo-200 group">
+                        <div class="w-9 h-9 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform flex-shrink-0">
+                            <i class="bi bi-stethoscope"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-slate-900 leading-tight">Ordre des Médecins</p>
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">ONMCI — CI</p>
+                        </div>
+                    </a>
+
+                    <a href="https://www.infas.ci/" target="_blank"
+                       class="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl hover:bg-green-50 transition-colors border border-slate-200 hover:border-green-200 group">
+                        <div class="w-9 h-9 bg-green-100 rounded-xl flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform flex-shrink-0">
+                            <i class="bi bi-mortarboard-fill"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-slate-900 leading-tight">Vérif. Diplôme</p>
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">INFAS</p>
+                        </div>
+                    </a>
+
+                    <a href="https://edepps.sante.gouv.ci/" target="_blank"
+                       class="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl hover:bg-blue-50 transition-colors border border-slate-200 hover:border-blue-200 group">
+                        <div class="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform flex-shrink-0">
+                            <i class="bi bi-globe2"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-slate-900 leading-tight">Registre Santé</p>
+                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">E-DEPPS</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
         </div>
 
         <!-- Main Content Settings -->
@@ -126,7 +171,7 @@
 
                 <p class="text-slate-500 font-medium mb-8">Définissez les numéros de réception pour chaque opérateur mobile relié à votre API de paiement globale.</p>
                 
-                <form action="#" method="POST" class="space-y-8">
+                <form action="{{ route('superadmin.settings.update') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                     @csrf
                     <div class="grid md:grid-cols-2 gap-8">
                         <!-- Orange Money -->
@@ -139,9 +184,21 @@
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <i class="bi bi-phone text-orange-500 text-xl"></i>
                                 </div>
-                                <input type="text" name="orange_money_number" value="0700000000" 
+                                <input type="text" name="orange_money_number" value="{{ $paymentSettings['payment_orange_money_number'] ?? '0700000000' }}" 
                                        class="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-3xl focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 transition-all duration-300 font-bold text-slate-900"
                                        placeholder="+225 07 ...">
+                            </div>
+                            
+                            <!-- QR Code Upload -->
+                            <div class="mt-3">
+                                <label class="block text-xs font-semibold text-slate-600 mb-2 ml-1">QR Code Orange Money</label>
+                                @if(isset($paymentSettings['payment_qr_orange']) && $paymentSettings['payment_qr_orange'])
+                                    <div class="mb-2 p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                                        <img src="{{ asset('storage/' . $paymentSettings['payment_qr_orange']) }}" alt="QR Orange" class="w-32 h-32 object-contain mx-auto rounded-lg">
+                                    </div>
+                                @endif
+                                <input type="file" name="qr_orange" accept="image/*" 
+                                       class="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-2xl text-sm focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all">
                             </div>
                         </div>
 
@@ -155,9 +212,21 @@
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <i class="bi bi-phone text-yellow-500 text-xl"></i>
                                 </div>
-                                <input type="text" name="mtn_money_number" value="0500000000" 
+                                <input type="text" name="mtn_money_number" value="{{ $paymentSettings['payment_mtn_money_number'] ?? '0500000000' }}" 
                                        class="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-3xl focus:border-yellow-500 focus:bg-white focus:ring-4 focus:ring-yellow-500/10 transition-all duration-300 font-bold text-slate-900"
                                        placeholder="+225 05 ...">
+                            </div>
+                            
+                            <!-- QR Code Upload -->
+                            <div class="mt-3">
+                                <label class="block text-xs font-semibold text-slate-600 mb-2 ml-1">QR Code MTN Money</label>
+                                @if(isset($paymentSettings['payment_qr_mtn']) && $paymentSettings['payment_qr_mtn'])
+                                    <div class="mb-2 p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                                        <img src="{{ asset('storage/' . $paymentSettings['payment_qr_mtn']) }}" alt="QR MTN" class="w-32 h-32 object-contain mx-auto rounded-lg">
+                                    </div>
+                                @endif
+                                <input type="file" name="qr_mtn" accept="image/*" 
+                                       class="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-2xl text-sm focus:border-yellow-500 focus:ring-4 focus:ring-yellow-500/10 transition-all">
                             </div>
                         </div>
 
@@ -171,9 +240,21 @@
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <i class="bi bi-phone text-blue-500 text-xl"></i>
                                 </div>
-                                <input type="text" name="moov_money_number" value="0100000000" 
+                                <input type="text" name="moov_money_number" value="{{ $paymentSettings['payment_moov_money_number'] ?? '0100000000' }}" 
                                        class="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-3xl focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all duration-300 font-bold text-slate-900"
                                        placeholder="+225 01 ...">
+                            </div>
+                            
+                            <!-- QR Code Upload -->
+                            <div class="mt-3">
+                                <label class="block text-xs font-semibold text-slate-600 mb-2 ml-1">QR Code Moov Money</label>
+                                @if(isset($paymentSettings['payment_qr_moov']) && $paymentSettings['payment_qr_moov'])
+                                    <div class="mb-2 p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                                        <img src="{{ asset('storage/' . $paymentSettings['payment_qr_moov']) }}" alt="QR Moov" class="w-32 h-32 object-contain mx-auto rounded-lg">
+                                    </div>
+                                @endif
+                                <input type="file" name="qr_moov" accept="image/*" 
+                                       class="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-2xl text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all">
                             </div>
                         </div>
 
@@ -187,9 +268,21 @@
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <i class="bi bi-phone text-cyan-400 text-xl"></i>
                                 </div>
-                                <input type="text" name="wave_number" value="0700000000" 
+                                <input type="text" name="wave_number" value="{{ $paymentSettings['payment_wave_number'] ?? '0700000000' }}" 
                                        class="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-3xl focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-400/10 transition-all duration-300 font-bold text-slate-900"
                                        placeholder="+225 07 ...">
+                            </div>
+                            
+                            <!-- QR Code Upload -->
+                            <div class="mt-3">
+                                <label class="block text-xs font-semibold text-slate-600 mb-2 ml-1">QR Code Wave</label>
+                                @if(isset($paymentSettings['payment_qr_wave']) && $paymentSettings['payment_qr_wave'])
+                                    <div class="mb-2 p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                                        <img src="{{ asset('storage/' . $paymentSettings['payment_qr_wave']) }}" alt="QR Wave" class="w-32 h-32 object-contain mx-auto rounded-lg">
+                                    </div>
+                                @endif
+                                <input type="file" name="qr_wave" accept="image/*" 
+                                       class="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-2xl text-sm focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/10 transition-all">
                             </div>
                         </div>
                     </div>
@@ -202,7 +295,7 @@
                     </div>
 
                     <div class="flex justify-end mt-4">
-                        <button type="button" onclick="showNotification('Configuration API mise à jour', 'success')" 
+                        <button type="submit" 
                                 class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-10 py-4 rounded-3xl font-bold transition-all duration-300 shadow-xl shadow-emerald-200 hover:scale-105 flex items-center gap-3">
                             <i class="bi bi-shield-check text-xl"></i>
                             Valider la Configuration

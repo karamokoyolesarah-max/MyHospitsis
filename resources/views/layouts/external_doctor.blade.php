@@ -65,7 +65,52 @@
     
     @stack('styles')
 </head>
-<body class="bg-gray-50 font-sans antialiased" x-data="{ sidebarOpen: window.innerWidth > 1024, mobileMenuOpen: false }">
+<body class="bg-gray-50 flex flex-col min-h-screen font-sans antialiased" x-data="{ sidebarOpen: window.innerWidth > 1024, mobileMenuOpen: false }">
+    @include('components.notification-sound')
+    @if(session('success') || session('error'))
+        <script>window.onload = () => window.playNotificationSound();</script>
+    @endif
+
+    <!-- Premium Floating Flash Messages -->
+    <div class="fixed top-6 right-6 z-[60] max-w-sm w-full pointer-events-none">
+        @if(session('success'))
+            <div class="mb-4 bg-white border-l-4 border-green-500 shadow-2xl rounded-xl p-4 flex items-start gap-3 animate-bounce-in pointer-events-auto">
+                <div class="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="text-sm font-black text-gray-900 uppercase">Succès</h4>
+                    <p class="text-xs text-gray-500 font-medium">{{ session('success') }}</p>
+                </div>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="mb-4 bg-white border-l-4 border-red-500 shadow-2xl rounded-xl p-4 flex items-start gap-3 animate-bounce-in pointer-events-auto">
+                <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="text-sm font-black text-gray-900 uppercase">Erreur</h4>
+                    <p class="text-xs text-gray-500 font-medium">{{ session('error') }}</p>
+                </div>
+            </div>
+        @endif
+    </div>
+
+    <style>
+        @keyframes bounce-in {
+            0% { transform: scale(0.9); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-bounce-in {
+            animation: bounce-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+    </style>
 
     <div class="flex h-screen overflow-hidden relative">
         
@@ -340,15 +385,45 @@
                                 <span class="absolute -top-1 -right-1 h-5 w-5 bg-indigo-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold">0</span>
                             </button>
 
-                            <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50">
-                                <div class="p-4 border-b border-gray-100">
+                            <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+                                <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                                     <h3 class="text-sm font-bold text-gray-900">Notifications</h3>
+                                    @php $unreadCount = Auth::guard('medecin_externe')->user()->unreadNotifications()->count(); @endphp
+                                    @if($unreadCount > 0)
+                                        <form action="{{ route('notifications.markAllAsRead') }}" method="POST" class="m-0">
+                                            @csrf
+                                            <input type="hidden" name="guard" value="medecin_externe">
+                                            <button type="submit" class="text-[10px] text-indigo-600 hover:underline uppercase font-black tracking-widest">Tout lu</button>
+                                        </form>
+                                    @endif
                                 </div>
-                                <div class="p-8 text-center">
-                                    <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
-                                    </svg>
-                                    <p class="text-gray-400 text-sm">Aucune notification</p>
+                                <div class="max-h-64 overflow-y-auto">
+                                    @foreach(Auth::guard('medecin_externe')->user()->notifications()->latest()->take(20)->get() as $note)
+                                        @php $isRead = !is_null($note->read_at); @endphp
+                                        <div class="group relative flex items-center p-4 border-b border-gray-100 hover:bg-indigo-50/30 transition-colors {{ $isRead ? 'opacity-60' : '' }}">
+                                            <div class="flex-1">
+                                                <p class="text-sm font-bold text-gray-900 leading-tight">{{ $note->data['title'] ?? 'Notification' }}</p>
+                                                <p class="text-[10px] text-gray-400 mt-1">{{ $note->data['message'] ?? '' }} · {{ $note->created_at->diffForHumans() }}</p>
+                                            </div>
+                                            @if(!$isRead)
+                                                <form action="{{ route('notifications.markAsRead', $note->id) }}" method="POST" class="opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    @csrf
+                                                    <input type="hidden" name="guard" value="medecin_externe">
+                                                    <button type="submit" class="p-1 text-gray-400 hover:text-green-600" title="Marquer comme lu">
+                                                        <i class="bi bi-check-circle-fill"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                    @if(Auth::guard('medecin_externe')->user()->notifications()->count() === 0)
+                                        <div class="p-8 text-center">
+                                            <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                                            </svg>
+                                            <p class="text-gray-400 text-sm">Aucune notification</p>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -411,39 +486,6 @@
                 </div>
             </header>
 
-            <!-- Flash Messages -->
-            @if(session('success'))
-            <div class="mx-6 mt-4">
-                <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl flex items-center space-x-3">
-                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span>{{ session('success') }}</span>
-                </div>
-            </div>
-            @endif
-
-            @if(session('error'))
-            <div class="mx-6 mt-4">
-                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center space-x-3">
-                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span>{{ session('error') }}</span>
-                </div>
-            </div>
-            @endif
-
-            @if(session('info'))
-            <div class="mx-6 mt-4">
-                <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl flex items-center space-x-3">
-                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span>{{ session('info') }}</span>
-                </div>
-            </div>
-            @endif
 
             <!-- Main Content -->
             <main class="flex-1 overflow-y-auto bg-gray-50 custom-scrollbar p-6">

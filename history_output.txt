@@ -1,0 +1,33 @@
+--- Appointments ---
+Appt ID: 12 | Date: 2026-02-10 | Status: confirmed | Doctor ID: 
+   -> LINKED VITAL FOUND: ID 3 | Visible: NO
+Appt ID: 10 | Date: 2026-02-10 | Status: prepared | Doctor ID: 
+   -> LINKED VITAL FOUND: ID 3 | Visible: NO
+Appt ID: 17 | Date: 2026-02-11 | Status: paid | Doctor ID: 
+   -> NO VITAL FOUND for this date.
+Appt ID: 11 | Date: 2026-02-12 | Status: pending | Doctor ID: 
+   -> NO VITAL FOUND for this date.
+Appt ID: 19 | Date: 2026-02-13 | Status: confirmed | Doctor ID: 
+   -> NO VITAL FOUND for this date.
+Appt ID: 23 | Date: 2026-02-18 | Status: prepared | Doctor ID: 
+   -> NO VITAL FOUND for this date.
+Appt ID: 18 | Date: 2026-02-20 | Status: completed | Doctor ID: 
+   -> NO VITAL FOUND for this date.
+Appt ID: 6 | Date: 2026-02-26 | Status: accepted | Doctor ID: 
+   -> NO VITAL FOUND for this date.
+Appt ID: 5 | Date: 2026-02-26 | Status: on_the_way | Doctor ID: 
+   -> NO VITAL FOUND for this date.
+Appt ID: 7 | Date: 2026-02-26 | Status: on_the_way | Doctor ID: 
+   -> NO VITAL FOUND for this date.
+Appt ID: 15 | Date: 2026-03-10 | Status: completed | Doctor ID: 
+   -> NO VITAL FOUND for this date.
+Appt ID: 8 | Date: 2026-03-30 | Status: completed | Doctor ID: 
+   -> NO VITAL FOUND for this date.
+Appt ID: 13 | Date: 2026-03-31 | Status: completed | Doctor ID: 
+   -> NO VITAL FOUND for this date.
+Appt ID: 9 | Date: 2026-05-28 | Status: completed | Doctor ID: 
+   -> NO VITAL FOUND for this date.
+
+--- All Vitals for Patient ---
+Vital ID: 4 | Date: 2026-02-17 09:49:45 | Visible: YES
+Vital ID: 3 | Date: 2026-02-10 11:04:51 | Visible: NO

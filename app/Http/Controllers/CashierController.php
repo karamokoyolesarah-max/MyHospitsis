@@ -9,9 +9,11 @@ use App\Models\Patient;
 use App\Models\WalkInConsultation;
 use App\Models\Service;
 use App\Models\Prestation;
-use App\Models\LabRequest; // Added
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\PaymentValidation; // Added
+use App\Models\LabRequest; // Added
+// use App\Models\Prestation; // Removed duplicate
 
 class CashierController extends Controller
 {
@@ -273,6 +275,8 @@ class CashierController extends Controller
                             'quantity' => $prestation->pivot->quantity,
                             'unit_price' => $prestation->pivot->unit_price,
                             'total' => $prestation->pivot->total,
+                            'added_at' => now(),
+                            'added_by' => auth()->id(),
                         ]);
                     }
                 }
@@ -423,9 +427,15 @@ class CashierController extends Controller
                     $target->update(['status' => 'paid']);
                 } elseif ($type === 'walk-in') {
                     $target->update(['status' => 'paid']);
+                    $this->createTechnicalRequests($target, 'walk-in');
                 } else { // Lab
                     $target->update(['is_paid' => true]);
                 }
+            }
+
+            if ($invoice->status === 'paid' && $type === 'appointment') {
+                 $target->update(['status' => 'paid']);
+                 $this->createTechnicalRequests($target, 'appointment');
             }
 
             DB::commit();
@@ -783,6 +793,7 @@ class CashierController extends Controller
         return redirect()->route('cashier.walk-in.index')->with('success', 'Consultation créée mais le paiement a échoué : ' . $e->getMessage());
     }    }
 
+
     /**
      * Récupérer les détails d'une consultation
      */
@@ -1114,69 +1125,67 @@ class CashierController extends Controller
     {
         $service = $user->service;
         if (!$service || !$service->is_caisse) {
-            // If not a cashier service, maybe allow everything or nothing? 
-            // Standard approach: if not specified, don't filter or filter by hospital.
             return;
         }
 
         $caisseType = $service->caisse_type;
+        $parentId = $service->parent_id;
         $isServiceQuery = $query->getModel() instanceof Service;
         
-        if ($caisseType === 'labo') {
-            // Caisse Labo : Uniquement Labo
+        // 1. Specialized Cashiers (Linked to a parent service or specific type)
+        if ($parentId || in_array($caisseType, ['labo', 'urgence'])) {
             if ($isLabRequest) {
-                $query->where('test_category', '!=', 'imagerie');
+                // If lab cashier, only lab tests (excluding imaging if desired, but user just said "uniquement labo")
+                // If it's another specialized cashier, they probably shouldn't see lab requests at all unless linked
+                if ($caisseType === 'labo' || ($parentId && str_contains(strtolower($service->parent->name ?? ''), 'labo'))) {
+                    $query->where('test_category', '!=', 'imagerie');
+                } else {
+                    $query->whereRaw('0=1'); // Filter out all lab requests for non-lab specialized cashiers
+                }
             } elseif ($isServiceQuery) {
-                $query->where(function($q) {
-                    $q->where('caisse_type', 'labo')
-                      ->orWhere('name', 'like', '%Labo%');
-                });
+                if ($parentId) {
+                    $query->where('id', $parentId);
+                } else {
+                    $query->where('caisse_type', $caisseType);
+                }
             } else {
-                $query->whereHas('service', function($q) {
-                    $q->where('caisse_type', 'labo')
-                      ->orWhere('name', 'like', '%Labo%');
+                $query->whereHas('service', function($q) use ($parentId, $caisseType) {
+                    if ($parentId) {
+                        $q->where('id', $parentId);
+                    } else {
+                        $q->where('caisse_type', $caisseType);
+                    }
                 });
             }
-        } elseif ($caisseType === 'urgence') {
-            // Caisse Urgence : Uniquement Urgence
+        } 
+        // 2. Global Cashier (No parent, type standard/null)
+        else {
             if ($isLabRequest) {
-                $query->where('id', 0); // Pas de lab requests en caisse urgence ?
-            } elseif ($isServiceQuery) {
-                $query->where(function($q) {
-                   $q->where('caisse_type', 'urgence')
-                     ->orWhere('name', 'like', '%Urgence%');
-                });
-            } else {
-                $query->whereHas('service', function($q) {
-                    $q->where('caisse_type', 'urgence')
-                      ->orWhere('name', 'like', '%Urgence%');
-                });
-            }
-        } else {
-            // Caisse Accueil : Tout SAUF Labo et Urgence
-            if ($isLabRequest) {
-                // Pour l'accueil, on ne montre que l'imagerie dans les LabRequests
+                // Global reception only sees Imaging (Radio) in LabRequests
                 $query->where('test_category', 'imagerie');
             } elseif ($isServiceQuery) {
+                // Exclude services handled by specialized cashiers
                 $query->where(function($q) {
                     $q->whereNull('caisse_type')
-                      ->orWhere(function($typeQ) {
-                          $typeQ->where('caisse_type', '!=', 'labo')
-                                ->where('caisse_type', '!=', 'urgence');
-                      });
+                      ->orWhere('caisse_type', 'standard');
                 })
-                ->where('name', 'not like', '%Labo%')
+                ->whereDoesntHave('children', function($q) {
+                    $q->where('is_caisse', true)
+                      ->whereIn('caisse_type', ['labo', 'urgence']);
+                })
+                ->where('name', 'not like', '%Laboratoire%') // Fallback safety
                 ->where('name', 'not like', '%Urgence%');
             } else {
                 $query->whereHas('service', function($q) {
                     $q->where(function($subQ) {
                         $subQ->whereNull('caisse_type')
-                             ->orWhere(function($typeQ) {
-                                 $typeQ->where('caisse_type', '!=', 'labo')
-                                       ->where('caisse_type', '!=', 'urgence');
-                             });
+                             ->orWhere('caisse_type', 'standard');
                     })
-                    ->where('name', 'not like', '%Labo%')
+                    ->whereDoesntHave('children', function($q2) {
+                        $q2->where('is_caisse', true)
+                           ->whereIn('caisse_type', ['labo', 'urgence']);
+                    })
+                    ->where('name', 'not like', '%Laboratoire%')
                     ->where('name', 'not like', '%Urgence%');
                 });
             }
@@ -1199,5 +1208,65 @@ class CashierController extends Controller
             ->paginate(15);
 
         return view('cashier.insurance_cards', compact('invoices'));
+    }
+
+    /**
+     * Helper to create LabRequests for paid technical prestations
+     */
+    private function createTechnicalRequests($target, $type)
+    {
+        $hospitalId = $target->hospital_id;
+        // For walk-in and appointment, we iterate through attached prestations
+        if ($type === 'lab') return; // Lab requests are already handled
+
+        // Preload service for prestations if not loaded
+        $prestations = $target->prestations; 
+
+        foreach ($prestations as $prestation) {
+            $service = \App\Models\Service::find($prestation->service_id);
+            
+            // Check if it's a technical service or category
+            $isTechnical = ($service && $service->type === 'technical') || 
+                           in_array($prestation->category, ['examen', 'imagerie', 'laboratoire']);
+
+            if ($isTechnical) {
+                // Determine category
+                $category = 'laboratoire';
+                // Simple keyword check for imaging
+                $imagingKeywords = ['Radio', 'TDM', 'IRM', 'Écho', 'Scanner', 'Doppler'];
+                foreach ($imagingKeywords as $kw) {
+                    if (stripos($prestation->name, $kw) !== false || ($service && stripos($service->name, $kw) !== false)) {
+                        $category = 'imagerie';
+                        break;
+                    }
+                }
+
+                // Check duplicates
+                $exists = \App\Models\LabRequest::where('hospital_id', $hospitalId)
+                    ->where('patient_ipu', $target->patient->ipu ?? 'Unknown')
+                    ->where('test_name', $prestation->name)
+                    ->whereDate('requested_at', now())
+                    ->exists();
+
+                if (!$exists) {
+                    \App\Models\LabRequest::create([
+                        'hospital_id' => $hospitalId,
+                        'patient_ipu' => $target->patient->ipu ?? 'Unknown',
+                        'patient_name' => $target->patient->full_name ?? ($target->patient->first_name . ' ' . $target->patient->name) ?? 'Unknown',
+                        'doctor_id' => $target->doctor_id ?? auth()->id(),
+                        'service_id' => $service ? $service->id : auth()->user()->service_id,
+                        'test_name' => $prestation->name,
+                        'test_category' => $category,
+                        'clinical_info' => $target->reason ?? 'Demande Caisse',
+                        'status' => 'pending',
+                        'requested_at' => now(),
+                        'is_paid' => true,
+                        'payment_transaction_id' => $target->payment_transaction_id,
+                        'payment_method' => $target->payment_method,
+                        'payment_operator' => $target->payment_operator,
+                    ]);
+                }
+            }
+        }
     }
 }

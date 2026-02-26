@@ -4,21 +4,21 @@ namespace App\Models;
 
 use App\Traits\BelongsToHospital;
 use Illuminate\Database\Eloquent\{Model, Factories\HasFactory, SoftDeletes};
+
 class MedicalRecord extends Model
 {
-    use HasFactory;
-     use BelongsToHospital;
+    use HasFactory, BelongsToHospital;
 
     protected $fillable = [
-        'hospital_id','patient_id', 'recorded_by_id', 'record_type', 'content',
-        'record_datetime', 'is_validated', 'validated_by_id', 'validated_at', 'status','observations', // <--- Vérifiez que ceci est présent
-    'ordonnance',
+        'hospital_id', 'patient_id', 'recorded_by_id', 'record_type', 'content',
+        'record_datetime', 'is_validated', 'validated_by_id', 'validated_at', 'status', 'meta',
     ];
 
     protected $casts = [
         'record_datetime' => 'datetime',
         'validated_at' => 'datetime',
         'is_validated' => 'boolean',
+        'meta' => 'array',
     ];
 
     public function patient()

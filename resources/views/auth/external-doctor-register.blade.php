@@ -8,6 +8,9 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-gradient-to-br from-green-50 to-emerald-100 min-h-screen">
+    
+    <x-navigation-buttons :back-url="route('select-portal')" />
+
     <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-2xl w-full space-y-8">
             {{-- En-tête --}}
@@ -76,13 +79,92 @@
                             @error('specialite') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
-                        {{-- Numéro d'ordre --}}
+                        {{-- Type d'identification --}}
                         <div>
+                            <label for="id_type" class="block text-sm font-medium text-gray-700 mb-2">Type d'identification professionnelle</label>
+                            <select id="id_type" name="id_type" onchange="toggleIdFields()"
+                                class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors">
+                                <option value="ordre" {{ old('id_type') == 'ordre' ? 'selected' : '' }}>N° Ordre des Médecins</option>
+                                <option value="matricule" {{ old('id_type') == 'matricule' ? 'selected' : '' }}>Numéro Matricule</option>
+                                <option value="diplome" {{ old('id_type') == 'diplome' ? 'selected' : '' }}>Numéro d'enregistrement du diplôme</option>
+                            </select>
+                        </div>
+
+                        {{-- Champs dynamiques d'identification --}}
+                        <div id="field_numero_ordre" class="id-field">
                             <label for="numero_ordre" class="block text-sm font-medium text-gray-700 mb-2">N° Ordre des Médecins</label>
-                            <input type="text" id="numero_ordre" name="numero_ordre" required value="{{ old('numero_ordre') }}"
+                            <input type="text" id="numero_ordre" name="numero_ordre" value="{{ old('numero_ordre') }}"
                                 class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
                                 placeholder="Ex: 123456">
                             @error('numero_ordre') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div id="field_numero_matricule" class="id-field hidden">
+                            <label for="numero_matricule" class="block text-sm font-medium text-gray-700 mb-2">Numéro Matricule</label>
+                            <input type="text" id="numero_matricule" name="numero_matricule" value="{{ old('numero_matricule') }}"
+                                class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                placeholder="Votre numéro matricule">
+                            @error('numero_matricule') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div id="field_numero_diplome" class="id-field hidden">
+                            <label for="numero_diplome" class="block text-sm font-medium text-gray-700 mb-2">Numéro d'enregistrement du diplôme</label>
+                            <input type="text" id="numero_diplome" name="numero_diplome" value="{{ old('numero_diplome') }}"
+                                class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                                placeholder="Ex: DIP-123456">
+                            @error('numero_diplome') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+
+                    <script>
+                        function toggleIdFields() {
+                            const type = document.getElementById('id_type').value;
+                            document.querySelectorAll('.id-field').forEach(el => el.classList.add('hidden'));
+                            
+                            if (type === 'ordre') {
+                                document.getElementById('field_numero_ordre').classList.remove('hidden');
+                            } else if (type === 'matricule') {
+                                document.getElementById('field_numero_matricule').classList.remove('hidden');
+                            } else if (type === 'diplome') {
+                                document.getElementById('field_numero_diplome').classList.remove('hidden');
+                            }
+                        }
+                        
+                        // Initial check
+                        window.onload = toggleIdFields;
+                    </script>
+
+                    
+                    {{-- Affiliation Professionnelle --}}
+                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-6">
+                        <h3 class="text-sm font-bold text-gray-900 mb-3 text-blue-800 flex items-center gap-2">
+                            <i class="fas fa-hospital-user"></i> Affiliation Professionnelle (Obligatoire)
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="affiliation_type" class="block text-sm font-medium text-gray-700 mb-2">Type d'affiliation</label>
+                                <select id="affiliation_type" name="affiliation_type" required
+                                    class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                    <option value="">Sélectionnez...</option>
+                                    <option value="hospital" {{ old('affiliation_type') == 'hospital' ? 'selected' : '' }}>Hôpital / Clinique</option>
+                                    <option value="supervisor" {{ old('affiliation_type') == 'supervisor' ? 'selected' : '' }}>Indépendant (Superviseur)</option>
+                                </select>
+                                @error('affiliation_type') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label for="affiliation_name" class="block text-sm font-medium text-gray-700 mb-2">Nom de l'Hôpital ou du Superviseur</label>
+                                <input type="text" id="affiliation_name" name="affiliation_name" required value="{{ old('affiliation_name') }}"
+                                    class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                    placeholder="Ex: CHU Cocody ou Pr. Kouassi">
+                                @error('affiliation_name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="affiliation_contact" class="block text-sm font-medium text-gray-700 mb-2">Contact du Référent (Téléphone ou Email)</label>
+                                <input type="text" id="affiliation_contact" name="affiliation_contact" required value="{{ old('affiliation_contact') }}"
+                                    class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                    placeholder="Pour vérification par nos services">
+                                @error('affiliation_contact') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                            </div>
                         </div>
                     </div>
 
@@ -124,6 +206,20 @@
                                 class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 transition-all">
                             @error('id_card_verso') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
+
+                        {{-- Vidéo de vérification --}}
+                        <div class="md:col-span-2">
+                             <label for="video_verification" class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                                <i class="fas fa-video text-red-500"></i> Vidéo de vérification d'identité (Obligatoire - KYC)
+                            </label>
+                            <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200 mb-2 text-sm text-yellow-800">
+                                <i class="fas fa-info-circle"></i> Veuillez uploader une courte vidéo (5-10 secondes) où vous tenez votre pièce d'identité près de votre visage et prononcez : 
+                                <strong>"Je suis Dr. [Votre Nom] et je m'inscris sur HospitSIS le {{ date('d/m/Y') }}"</strong>.
+                            </div>
+                            <input type="file" id="video_verification" name="video_verification" accept="video/mp4,video/webm,video/quicktime" required
+                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 transition-all">
+                            @error('video_verification') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -145,6 +241,27 @@
                         </div>
                     </div>
 
+                    {{-- Avertissements Légaux --}}
+                    <div class="bg-red-50 p-4 rounded-xl border border-red-200">
+                        <div class="flex items-start gap-3">
+                            <div class="flex items-center h-5">
+                                <input id="terms_accepted" name="terms_accepted" type="checkbox" required
+                                    class="focus:ring-red-500 h-4 w-4 text-red-600 border-gray-300 rounded">
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="terms_accepted" class="font-medium text-red-800">Déclaration sur l'honneur</label>
+                                <p class="text-red-700 mt-1">
+                                    Je certifie sur l'honneur l'exactitude des informations fournies. Je reconnais que toute fausse déclaration, notamment l'usurpation du titre de médecin, est passible de poursuites pénales immédiates et de bannissement définitif de la plateforme.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Captcha Placeholder --}}
+                    <div class="text-xs text-center text-gray-400">
+                        Protection anti-robot activée (ReCAPTCHA v3)
+                    </div>
+
                     {{-- Bouton de soumission --}}
                     <button type="submit"
                         class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
@@ -161,10 +278,6 @@
                             Connectez-vous ici
                         </a>
                     </p>
-                    <a href="{{ route('home') }}" class="block text-sm text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-arrow-left mr-1"></i>
-                        Retour à l'accueil
-                    </a>
                 </div>
             </div>
 

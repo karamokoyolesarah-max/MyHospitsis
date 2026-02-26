@@ -445,7 +445,7 @@
                         <p class="text-gray-600 mb-4 text-sm leading-relaxed">
                             Accompagnement personnalisé pendant votre grossesse. Consultations prénatales, échographies, cours de préparation.
                         </p>
-                        <a href="#" class="inline-flex items-center text-pink-600 font-bold hover:text-pink-700 text-sm">
+                        <a href="{{ route('public.services.maternity') }}" class="inline-flex items-center text-pink-600 font-bold hover:text-pink-700 text-sm">
                             En savoir plus <i class="fas fa-arrow-right ml-2"></i>
                         </a>
                     </div>
@@ -464,7 +464,7 @@
                         <p class="text-gray-600 mb-4 text-sm leading-relaxed">
                             Prévention et traitement des maladies cardiaques. Bilans cardiovasculaires complets et suivi personnalisé.
                         </p>
-                        <a href="#" class="inline-flex items-center text-orange-600 font-bold hover:text-orange-700 text-sm">
+                        <a href="{{ route('public.services.cardiology') }}" class="inline-flex items-center text-orange-600 font-bold hover:text-orange-700 text-sm">
                             En savoir plus <i class="fas fa-arrow-right ml-2"></i>
                         </a>
                     </div>
@@ -483,7 +483,7 @@
                         <p class="text-gray-600 mb-4 text-sm leading-relaxed">
                             Suivi médical de la naissance à l'adolescence. Vaccinations, bilans de santé et conseils aux parents.
                         </p>
-                        <a href="#" class="inline-flex items-center text-blue-600 font-bold hover:text-blue-700 text-sm">
+                        <a href="{{ route('public.services.pediatrics') }}" class="inline-flex items-center text-blue-600 font-bold hover:text-blue-700 text-sm">
                             En savoir plus <i class="fas fa-arrow-right ml-2"></i>
                         </a>
                     </div>
@@ -502,7 +502,7 @@
                         <p class="text-gray-600 mb-4 text-sm leading-relaxed">
                             Conseils nutritionnels personnalisés. Programmes d'alimentation équilibrée et gestion du poids.
                         </p>
-                        <a href="#" class="inline-flex items-center text-green-600 font-bold hover:text-green-700 text-sm">
+                        <a href="{{ route('public.services.nutrition') }}" class="inline-flex items-center text-green-600 font-bold hover:text-green-700 text-sm">
                             En savoir plus <i class="fas fa-arrow-right ml-2"></i>
                         </a>
                     </div>
@@ -513,7 +513,7 @@
                     <div class="image-slider" id="slider5">
                         <img src="{{ asset('images/psycho/image1.jpg') }}" alt="Psycho 1" class="active">
                         <img src="{{ asset('images/psycho/image2.jpg') }}" alt="Psycho 2">
-                        <img src="{{ asset('images/psycho/image3.jpeg') }}" alt="Psycho 3">
+                        <img src="{{ asset('images/psycho/image1.jpg') }}" alt="Psycho 3">
                     </div>
                     <div class="p-6">
                         <span class="inline-block px-4 py-1 bg-purple-500 text-white rounded-full text-xs font-bold mb-3">PSYCHOLOGIE</span>
@@ -521,7 +521,7 @@
                         <p class="text-gray-600 mb-4 text-sm leading-relaxed">
                             Accompagnement psychologique et soutien émotionnel. Gestion du stress et thérapies comportementales.
                         </p>
-                        <a href="#" class="inline-flex items-center text-purple-600 font-bold hover:text-purple-700 text-sm">
+                        <a href="{{ route('public.services.psychology') }}" class="inline-flex items-center text-purple-600 font-bold hover:text-purple-700 text-sm">
                             En savoir plus <i class="fas fa-arrow-right ml-2"></i>
                         </a>
                     </div>
@@ -540,7 +540,7 @@
                         <p class="text-gray-600 mb-4 text-sm leading-relaxed">
                             Service d'urgences disponible jour et nuit. Équipe médicale qualifiée prête à intervenir rapidement.
                         </p>
-                        <a href="#" class="inline-flex items-center text-yellow-600 font-bold hover:text-yellow-700 text-sm">
+                        <a href="{{ route('public.services.emergencies') }}" class="inline-flex items-center text-yellow-600 font-bold hover:text-yellow-700 text-sm">
                             En savoir plus <i class="fas fa-arrow-right ml-2"></i>
                         </a>
                     </div>

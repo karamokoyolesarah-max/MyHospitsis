@@ -87,7 +87,16 @@ class UserController extends Controller
         $query = User::with('service')->where('hospital_id', auth()->user()->hospital_id);
 
         if ($request->filled('role')) {
-            $query->where('role', $request->role);
+            $role = $request->role;
+            if ($role === 'doctor') {
+                $query->whereIn('role', ['doctor', 'medecin', 'internal_doctor', 'doctor_lab', 'doctor_radio']);
+            } elseif ($role === 'nurse') {
+                $query->whereIn('role', ['nurse']); // Add sub-roles here if they exist
+            } elseif ($role === 'lab_technician') {
+                $query->whereIn('role', ['lab_technician', 'radio_technician']);
+            } else {
+                $query->where('role', $role);
+            }
         }
 
         if ($request->filled('service_id')) {
@@ -95,9 +104,14 @@ class UserController extends Controller
         }
 
         if ($request->filled('pole')) {
-            $query->whereHas('service', function($q) use ($request) {
-                $q->where('type', $request->pole);
-            });
+            $pole = $request->pole;
+            if ($pole === 'medical') {
+                $query->medical();
+            } elseif ($pole === 'technical') {
+                $query->technical();
+            } elseif ($pole === 'support') {
+                $query->support();
+            }
         }
 
         if ($request->filled('is_active')) {
@@ -124,7 +138,10 @@ class UserController extends Controller
 
     public function create()
     {
-        $services = Service::where('hospital_id', auth()->user()->hospital_id)->where('is_active', true)->get();
+        $services = Service::where('hospital_id', auth()->user()->hospital_id)
+            ->where('is_active', true)
+            ->with('parent')
+            ->get();
         return view('users.create', compact('services'));
     }
 
@@ -134,7 +151,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:admin,doctor,nurse,administrative,cashier,lab_technician,internal_doctor,doctor_lab',
+            'role' => 'required|in:admin,doctor,nurse,administrative,cashier,lab_technician,internal_doctor,doctor_lab,pharmacist,secretary',
             'service_id' => 'nullable|exists:services,id',
             'phone' => 'nullable|string|max:20',
             'registration_number' => 'nullable|string|max:50',
@@ -188,7 +205,10 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        $services = Service::where('hospital_id', auth()->user()->hospital_id)->where('is_active', true)->get();
+        $services = Service::where('hospital_id', auth()->user()->hospital_id)
+            ->where('is_active', true)
+            ->with('parent')
+            ->get();
         return view('users.edit', compact('user', 'services'));
     }
 
@@ -197,7 +217,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'role' => 'required|in:admin,doctor,nurse,administrative,cashier,lab_technician,internal_doctor,doctor_lab',
+            'role' => 'required|in:admin,doctor,nurse,administrative,cashier,lab_technician,internal_doctor,doctor_lab,pharmacist,secretary',
             'service_id' => 'nullable|exists:services,id',
             'phone' => 'nullable|string|max:20',
             'registration_number' => 'nullable|string|max:50',

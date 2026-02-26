@@ -1,0 +1,1 @@
+migrate:refresh --path=database/migrations/2026_02_15_113112_add_security_fields_to_medecins_externes_table.php

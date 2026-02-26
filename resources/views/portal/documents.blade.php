@@ -9,109 +9,150 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg min-h-[500px] flex flex-col border border-gray-200">
                 
-                <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex items-center space-x-2 overflow-x-auto">
-                    <button @click="resetPath()" class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 transition-colors">
-                        <i class="fas fa-home"></i>
-                    </button>
-                    
-                    <span class="text-gray-400" x-show="currentPath.length > 0"><i class="fas fa-chevron-right text-xs"></i></span>
+                <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-2 overflow-x-auto">
+                        <button @click="resetPath()" class="p-2 rounded-lg hover:bg-gray-200 text-gray-600 transition-colors">
+                            <i class="fas fa-home"></i>
+                        </button>
+                        
+                        <span class="text-gray-400" x-show="currentPath.length > 0"><i class="fas fa-chevron-right text-xs"></i></span>
 
-                    <template x-for="(crumb, index) in currentPath" :key="index">
-                        <div class="flex items-center">
-                            <button @click="goToLevel(index)" 
-                                    class="px-3 py-1 rounded-md font-medium text-sm transition-colors hover:bg-blue-100 hover:text-blue-700"
-                                    :class="index === currentPath.length - 1 ? 'text-gray-900 font-bold bg-white shadow-sm' : 'text-gray-600'"
-                                    x-text="crumb">
-                            </button>
-                            <span class="mx-2 text-gray-400" x-show="index < currentPath.length - 1">
-                                <i class="fas fa-chevron-right text-xs"></i>
-                            </span>
-                        </div>
-                    </template>
-
-                    <div x-show="currentPath.length === 0" class="text-gray-400 italic text-sm ml-2">
-                        Vue d'ensemble des Services
-                    </div>
-                </div>
-
-                <div class="p-6 flex-1 bg-white">
-                    <div x-show="viewType === 'folders'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <template x-for="(item, key) in currentLevelItems" :key="key">
-                            <div @click="enterFolder(key)" 
-                                 class="group cursor-pointer border border-gray-100 rounded-2xl p-6 bg-gray-50 hover:bg-white hover:shadow-lg hover:border-blue-100 transition-all duration-200 flex flex-col items-center justify-center text-center relative overflow-hidden">
-                                
-                                <div class="absolute -right-4 -bottom-4 text-9xl text-gray-200 opacity-20 transform group-hover:scale-110 transition-transform duration-500 pointer-events-none">
-                                    <i :class="getIcon(key)"></i>
-                                </div>
-
-                                <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-colors duration-300"
-                                     :class="getColorClass(key, item)"
-                                     :style="item.color && item.color.startsWith('#') ? 'background-color: ' + item.color + '22; color: ' + item.color : ''">
-                                    <i :class="getIcon(key, item)" class="text-3xl"></i>
-                                </div>
-
-                                <h3 class="font-bold text-gray-800 text-lg group-hover:text-blue-600 transition-colors" x-text="key"></h3>
-                                <p class="text-xs text-gray-500 mt-1 font-medium" x-text="getSubLabel(item)"></p>
+                        <template x-for="(crumb, index) in currentPath" :key="index">
+                            <div class="flex items-center">
+                                <button @click="goToLevel(index)" 
+                                        class="px-3 py-1 rounded-md font-medium text-sm transition-colors hover:bg-blue-100 hover:text-blue-700 whitespace-nowrap"
+                                        :class="index === currentPath.length - 1 ? 'text-gray-900 font-bold bg-white shadow-sm' : 'text-gray-600'"
+                                        x-text="crumb">
+                                </button>
+                                <span class="mx-2 text-gray-400" x-show="index < currentPath.length - 1">
+                                    <i class="fas fa-chevron-right text-xs"></i>
+                                </span>
                             </div>
                         </template>
 
-                        <div x-show="Object.keys(currentLevelItems).length === 0" class="col-span-full text-center py-12 text-gray-400">
-                            <i class="fas fa-folder-open text-4xl mb-3 opacity-50"></i>
-                            <p>Ce dossier est vide.</p>
+                        <div x-show="currentPath.length === 0" class="text-gray-400 italic text-sm ml-2 whitespace-nowrap">
+                            Espace Documents
                         </div>
                     </div>
 
-                <div x-show="viewType === 'files'" class="space-y-6">
-                    <template x-for="(group, date) in groupedFiles" :key="date">
-                        <div class="mb-6">
-                            <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 ml-1" x-text="formatDate(date)"></h3>
-                            
-                            <div class="space-y-3">
-                                <template x-for="doc in group" :key="doc.id">
-                                    <div class="flex flex-col md:flex-row items-start md:items-center p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors hover:border-blue-200 group bg-white shadow-sm">
-                                        <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
-                                            <i :class="doc.icon || 'fas fa-file-alt'"></i>
-                                        </div>
-                                        <div class="flex-1">
-                                            <h4 class="font-bold text-gray-900 group-hover:text-blue-700 transition-colors" x-text="doc.title"></h4>
-                                            <div class="flex items-center text-xs text-gray-500 mt-1 space-x-3">
-                                                <span><i class="far fa-clock mr-1"></i> <span x-text="new Date(doc.date).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})"></span></span>
-                                                <span class="bg-gray-200 px-2 py-0.5 rounded text-gray-600" x-text="doc.type"></span>
-                                            </div>
-                                        </div>
-                                        <div class="mt-3 md:mt-0 flex space-x-2">
-                                            <button @click="shareFile(doc)" class="px-3 py-1.5 bg-gray-100 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-200 transition flex items-center" title="Partager">
-                                                <i class="fas fa-share-alt mr-1.5"></i> Partager
-                                            </button>
-                                            
-                                            <template x-if="doc.result_text">
-                                                <button @click="openResult(doc)" class="px-3 py-1.5 bg-purple-600 text-white text-xs font-bold rounded-lg hover:bg-purple-700 transition shadow-sm flex items-center">
-                                                    <i class="fas fa-eye mr-1.5"></i> Résultat
-                                                </button>
-                                            </template>
-
-                                            <template x-if="doc.download_route">
-                                                <a :href="doc.download_route" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition shadow-sm flex items-center">
-                                                    <i class="fas fa-download mr-1.5"></i> Télécharger
-                                                </a>
-                                            </template>
-                                            <template x-if="!doc.download_route && !doc.result_text">
-                                                <span class="px-3 py-1.5 bg-gray-100 text-gray-400 text-xs font-bold rounded-lg cursor-not-allowed flex items-center">
-                                                    <i class="fas fa-clock mr-1.5"></i> En attente
-                                                </span>
-                                            </template>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
+                    <!-- Barre de Recherche -->
+                    <div class="relative max-w-[200px] md:max-w-xs w-full ml-4">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400 text-xs"></i>
                         </div>
-                    </template>
-
-                    <div x-show="filesList.length === 0" class="text-center py-12 text-gray-400">
-                        <p>Aucun document dans ce dossier.</p>
+                        <input type="text" 
+                               x-model="searchQuery" 
+                               placeholder="Rechercher..." 
+                               class="block w-full pl-9 pr-3 py-1.5 border border-gray-300 rounded-xl leading-5 bg-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all hover:border-gray-400">
                     </div>
                 </div>
-            </div>
+
+                <div class="p-0 flex-1 bg-white">
+                    <!-- En-têtes style Explorateur -->
+                    <div class="grid grid-cols-12 gap-4 px-6 py-2 bg-gray-50 border-b border-gray-100 text-[10px] uppercase font-black text-gray-400 tracking-widest">
+                        <div class="col-span-8 md:col-span-6">Nom</div>
+                        <div class="hidden md:block col-span-3">Détails</div>
+                        <div class="col-span-4 md:col-span-3 text-right">Action</div>
+                    </div>
+
+                    <!-- Vue Dossiers (Style Liste) -->
+                    <div x-show="viewType === 'folders'" class="divide-y divide-gray-50">
+                        <template x-for="(item, key) in filteredFolders" :key="key">
+                            <div @click="enterFolder(key)" 
+                                 class="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-blue-50/50 cursor-pointer transition-colors group">
+                                
+                                <div class="col-span-8 md:col-span-6 flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm border border-gray-100 bg-white"
+                                         :class="getColorClass(key, item)"
+                                         :style="item.color && item.color.startsWith('#') ? 'background-color: ' + item.color + '11; color: ' + item.color : ''">
+                                        <i :class="getIcon(key, item)" class="text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-gray-800 text-sm group-hover:text-blue-600 transition-colors" x-text="key"></h3>
+                                        <p class="md:hidden text-[10px] text-gray-500 font-medium uppercase tracking-tight" x-text="getSubLabel(item)"></p>
+                                    </div>
+                                </div>
+
+                                <div class="hidden md:block col-span-3">
+                                    <span class="text-xs text-gray-500 font-medium" x-text="getSubLabel(item)"></span>
+                                </div>
+
+                                <div class="col-span-4 md:col-span-3 text-right">
+                                    <i class="fas fa-chevron-right text-gray-300 group-hover:text-blue-400 transition-colors"></i>
+                                </div>
+                            </div>
+                        </template>
+
+                        <div x-show="Object.keys(filteredFolders).length === 0" class="py-20 text-center text-gray-400">
+                            <i class="fas fa-folder-open text-4xl mb-3 opacity-20"></i>
+                            <p class="text-sm font-medium">Aucun élément ne correspond à votre recherche.</p>
+                        </div>
+                    </div>
+
+                    <!-- Vue Fichiers (Style Liste harmonisée) -->
+                    <div x-show="viewType === 'files'" class="divide-y divide-gray-50">
+                        <template x-for="(group, date) in filteredGroupedFiles" :key="date">
+                            <div>
+                                <div class="px-6 py-2 bg-gray-50/50 group flex items-center gap-2">
+                                    <i class="far fa-calendar-alt text-gray-300 text-xs"></i>
+                                    <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest" x-text="formatDate(date)"></h3>
+                                </div>
+                                
+                                <div class="divide-y divide-gray-50">
+                                    <template x-for="doc in group" :key="doc.id">
+                                        <div class="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-blue-50/30 transition-colors group bg-white">
+                                            
+                                            <div class="col-span-8 md:col-span-6 flex items-center gap-4">
+                                                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-sm border border-blue-100 group-hover:scale-110 transition-transform">
+                                                    <i :class="doc.icon || 'fas fa-file-alt'" class="text-xl"></i>
+                                                </div>
+                                                <div>
+                                                    <h4 class="font-bold text-gray-900 text-sm group-hover:text-blue-700 transition-colors" x-text="doc.title"></h4>
+                                                    <div class="flex items-center gap-2 mt-0.5">
+                                                        <span class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
+                                                            <i class="far fa-clock mr-1"></i>
+                                                            <span x-text="new Date(doc.date).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})"></span>
+                                                        </span>
+                                                        <span class="bg-gray-100 px-1.5 py-0.5 rounded text-[9px] text-gray-500 font-black uppercase tracking-tighter" x-text="doc.type"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="hidden md:block col-span-3">
+                                                <span x-show="doc.result_text" class="text-[10px] bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter border border-purple-200">RÉSULTAT PRÊT</span>
+                                                <span x-show="!doc.result_text && doc.download_route" class="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter border border-blue-200">DOC. PDF</span>
+                                                <span x-show="!doc.result_text && !doc.download_route" class="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-black uppercase tracking-tighter border border-orange-200 animate-pulse">EN COURS</span>
+                                            </div>
+
+                                            <div class="col-span-4 md:col-span-3 flex justify-end gap-2">
+                                                <template x-if="doc.result_text">
+                                                    <button @click="openResult(doc)" class="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="Voir Résultat">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                </template>
+
+                                                <template x-if="doc.download_route">
+                                                    <a :href="doc.download_route" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Télécharger">
+                                                        <i class="fas fa-download"></i>
+                                                    </a>
+                                                </template>
+
+                                                <button @click="shareFile(doc)" class="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors" title="Partager">
+                                                    <i class="fas fa-share-alt"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+
+                        <div x-show="Object.values(filteredGroupedFiles).flat().length === 0" class="py-20 text-center text-gray-400">
+                            <i class="fas fa-file-medical text-4xl mb-3 opacity-20"></i>
+                            <p class="text-sm font-medium">Aucun document ne correspond à votre recherche.</p>
+                        </div>
+                    </div>
+                </div>
 
             <!-- Modal Résultat -->
             <div x-show="showResultModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -144,11 +185,14 @@
                 </div>
             </div>
 
-                <div class="bg-gray-50 border-t border-gray-200 px-6 py-3 text-xs text-gray-500 flex justify-between">
+                <div class="bg-gray-50 border-t border-gray-200 px-6 py-3 text-xs text-gray-500 flex justify-between items-center">
                     <span>
-                        <span class="font-bold" x-text="viewType === 'folders' ? Object.keys(currentLevelItems).length : filesList.length"></span> éléments
+                        <span class="font-bold" x-text="viewType === 'folders' ? Object.keys(filteredFolders).length : filteredFilesList.length"></span> éléments trouvés
+                        <template x-if="searchQuery">
+                            <span class="text-blue-500 ml-1">(filtré par recherche)</span>
+                        </template>
                     </span>
-                    <span x-text="currentPath.join(' / ') || '/'"></span>
+                    <span class="font-medium uppercase tracking-tighter opacity-50" x-text="currentPath.join(' / ') || '/'"></span>
                 </div>
             </div>
         </div>
@@ -199,6 +243,21 @@
                     return current || {};
                 },
 
+                get filteredFolders() {
+                    const items = this.currentLevelItems;
+                    if (!this.searchQuery) return items;
+                    
+                    const filtered = {};
+                    const query = this.searchQuery.toLowerCase();
+                    
+                    Object.keys(items).forEach(key => {
+                        if (key.toLowerCase().includes(query)) {
+                            filtered[key] = items[key];
+                        }
+                    });
+                    return filtered;
+                },
+
                 get filesList() {
                     let current = this.data;
                     for (let folder of this.currentPath) {
@@ -208,18 +267,23 @@
                     return Array.isArray(current) ? current : [];
                 },
 
-                get groupedFiles() {
+                get filteredFilesList() {
                     const current = this.filesList;
+                    if (!this.searchQuery) return current;
+                    
+                    const query = this.searchQuery.toLowerCase();
+                    return current.filter(doc => doc.title.toLowerCase().includes(query));
+                },
+
+                get filteredGroupedFiles() {
+                    const current = this.filteredFilesList;
                     const grouped = {};
                     current.forEach(doc => {
-                       // Extraire YYYY-MM-DD
                        const dateObj = new Date(doc.date);
-                       // Format simple pour tri
                        const d = dateObj.toISOString().split('T')[0]; 
                        if (!grouped[d]) grouped[d] = [];
                        grouped[d].push(doc);
                     });
-                    // Trier les clés (dates) décroissant
                     return Object.keys(grouped).sort().reverse().reduce((obj, key) => {
                         obj[key] = grouped[key];
                         return obj;

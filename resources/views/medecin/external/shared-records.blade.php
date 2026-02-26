@@ -36,6 +36,56 @@
         </div>
     </div>
 
+    <!-- My Documents Section -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-gray-900">Mes Documents Créés</h2>
+            <a href="{{ route('external.documents.create') }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700">
+                + Nouveau Document
+            </a>
+        </div>
+
+        @if(isset($documents) && $documents->isNotEmpty())
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach($documents as $doc)
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition card-hover group cursor-pointer" onclick="window.open('{{ route('external.documents.download', $doc->id) }}', '_blank')">
+                <div class="p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                            {{ $doc->document_type_label ?? $doc->document_type }}
+                        </span>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-1 line-clamp-1">{{ $doc->title }}</h3>
+                    <p class="text-gray-500 text-sm mb-4">{{ $doc->patient->name ?? 'Patient' }}</p>
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <span class="text-gray-400 text-sm">{{ $doc->created_at->format('d/m/Y') }}</span>
+                        <div class="flex space-x-2">
+                             <a href="{{ route('external.documents.download', $doc->id) }}" class="p-1 text-gray-400 hover:text-indigo-600 transition" title="Télécharger" target="_blank">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @else
+        <div class="bg-gray-50 rounded-xl p-8 text-center border border-dashed border-gray-200">
+            <p class="text-gray-500">Aucun document créé récemment.</p>
+            <a href="{{ route('external.documents.create') }}" class="mt-2 inline-block text-indigo-600 font-semibold text-sm hover:underline">Créer un document</a>
+        </div>
+        @endif
+    </div>
+
+    <h2 class="text-xl font-bold text-gray-900 mb-4">Dossiers Reçus (Hôpitaux)</h2>
+
     <!-- Records List -->
     @if($records->isEmpty())
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">

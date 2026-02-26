@@ -161,20 +161,27 @@
         <form id="resultForm" method="POST" class="p-6 space-y-4">
             @csrf
             <div>
-                <label class="block text-sm font-bold text-gray-700 mb-2">📊 Résultat de l'analyse</label>
-                <textarea name="result" rows="6" required
-                          placeholder="Ex: Hémoglobine: 12.5 g/dL (Normal)&#10;Leucocytes: 8000/mm³ (Normal)&#10;Plaquettes: 250000/mm³ (Normal)"
-                          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"></textarea>
+                <label class="block text-sm font-bold text-gray-700 mb-2">📊 Résultats de l'analyse</label>
+                <div class="mb-3 p-3 bg-amber-50 border border-amber-100 rounded-lg">
+                    <p class="text-[10px] font-bold text-amber-800 uppercase mb-1">💡 Astuce Formatage</p>
+                    <p class="text-[11px] text-amber-900 line-height-1">
+                        Pour un affichage optimal sur le rapport (style BioGroupe), saisissez vos résultats ligne par ligne.<br>
+                        Exemple : <code class="bg-amber-100 px-1">Leucocytes : 8500 /mm3 [4000 - 10000]</code>
+                    </p>
+                </div>
+                <textarea name="result" rows="8" required
+                          placeholder="Saisissez les résultats ici...&#10;Ex: Hémoglobine : 13.5 g/dl [14.0 - 17.0]"
+                          class="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-500/10 outline-none transition-all font-mono text-sm"></textarea>
             </div>
 
             <div class="flex gap-3 pt-4 border-t">
                 <button type="button" onclick="closeResultModal()"
-                        class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded-lg transition-all">
+                        class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 rounded-xl transition-all">
                     Annuler
                 </button>
                 <button type="submit"
-                        class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-lg transition-all">
-                    ✅ Valider et Envoyer au Médecin
+                        class="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-3 rounded-xl shadow-lg transform hover:-translate-y-0.5 transition-all">
+                    🚀 Valider et Envoyer au Médecin
                 </button>
             </div>
         </form>

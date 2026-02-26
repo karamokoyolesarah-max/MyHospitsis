@@ -127,6 +127,7 @@ Route::post('confirm-password', function (Request $request) {
 
 // ============ AUTHENTIFICATION MULTI-FACTEURS (MFA) ============
 Route::middleware('auth')->group(function () {
+    Route::put('password', [\App\Http\Controllers\Auth\PasswordController::class, 'update'])->name('password.update');
     
     Route::get('mfa/verify', function () {
         return view('auth.mfa-verify');
