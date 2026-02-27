@@ -542,7 +542,7 @@
             doctorsList.innerHTML = '<div class="col-span-full py-10 text-center"><i class="fas fa-spinner fa-spin text-3xl text-indigo-500 mb-3"></i><p class="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Recherche des médecins...</p></div>';
             
             try {
-                const response = await fetch(`/portal/ajax/doctors-by-specialty/${encodeURIComponent(specialty)}`);
+                const response = await fetch(`{{ url('/portal/ajax/doctors-by-specialty') }}/${encodeURIComponent(specialty)}`);
                 const doctors = await response.json();
                 
                 doctorsList.innerHTML = '';
@@ -610,7 +610,7 @@
             doctorsList.innerHTML = '<div class="col-span-full py-6 text-center"><i class="fas fa-spinner fa-spin text-xl text-blue-500 mr-2"></i><span class="text-slate-400 text-xs font-bold">Chargement...</span></div>';
             
             try {
-                const response = await fetch(`/portal/ajax/internal-doctors-by-specialty/${encodeURIComponent(specialty)}`);
+                const response = await fetch(`{{ url('/portal/ajax/internal-doctors-by-specialty') }}/${encodeURIComponent(specialty)}`);
                 const doctors = await response.json();
                 
                 doctorsList.innerHTML = '';
@@ -719,7 +719,7 @@
             document.getElementById('doctors_section').classList.remove('hidden');
             
             try {
-                const response = await fetch(`/portal/ajax/doctors-by-specialty/${encodeURIComponent(specialty)}`);
+                const response = await fetch(`{{ url('/portal/ajax/doctors-by-specialty') }}/${encodeURIComponent(specialty)}`);
                 doctorsData = await response.json();
                 
                 document.getElementById('doctors_count').innerText = `${doctorsData.length} trouvés`;
