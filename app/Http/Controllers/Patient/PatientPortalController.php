@@ -943,7 +943,12 @@ class PatientPortalController extends Controller
         $patient = Auth::guard('patients')->user();
 
         // Vérifier que le rendez-vous appartient au patient
-        if ($appointment->patient_id !== $patient->id) {
+        if ((int)$appointment->patient_id !== (int)$patient->id) {
+            \Log::warning('Tentative d\'annulation de RDV non autorisé (403)', [
+                'rdv_id' => $appointment->id,
+                'patient_rdv_id' => $appointment->patient_id,
+                'patient_session_id' => $patient->id
+            ]);
             abort(403, 'Vous n\'êtes pas autorisé à annuler ce rendez-vous.');
         }
 
@@ -1092,7 +1097,12 @@ class PatientPortalController extends Controller
     public function showConfirmation(Appointment $appointment)
     {
         // Vérifier que le rendez-vous appartient au patient connecté
-        if ($appointment->patient_id !== Auth::guard('patients')->id()) {
+        if ((int)$appointment->patient_id !== (int)Auth::guard('patients')->id()) {
+            \Log::warning('Accès au RDV refusé (403)', [
+                'rdv_id' => $appointment->id,
+                'patient_rdv_id' => $appointment->patient_id,
+                'patient_session_id' => Auth::guard('patients')->id()
+            ]);
             abort(403);
         }
 
